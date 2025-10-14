@@ -1,0 +1,98 @@
+/* WP Blog Agent Admin Styles */
+
+.wp-blog-agent-admin {
+    max-width: 1200px;
+}
+
+.wp-blog-agent-card {
+    background: #fff;
+    border: 1px solid #ccd0d4;
+    box-shadow: 0 1px 1px rgba(0,0,0,.04);
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.wp-blog-agent-card h2 {
+    margin-top: 0;
+    padding-top: 0;
+}
+
+.wp-blog-agent-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+    margin: 20px 0;
+}
+
+.wp-blog-agent-stat-box {
+    background: #f0f0f1;
+    padding: 20px;
+    border-radius: 4px;
+    text-align: center;
+}
+
+.wp-blog-agent-stat-box .stat-number {
+    font-size: 36px;
+    font-weight: 600;
+    color: #2271b1;
+    display: block;
+    margin-bottom: 5px;
+}
+
+.wp-blog-agent-stat-box .stat-label {
+    font-size: 14px;
+    color: #646970;
+}
+
+.wp-blog-agent-status-active {
+    color: #46b450;
+    font-weight: 600;
+}
+
+.wp-blog-agent-status-inactive {
+    color: #dc3232;
+    font-weight: 600;
+}
+
+.wp-blog-agent-notice {
+    padding: 12px 15px;
+    margin: 15px 0;
+    border-left: 4px solid #72aee6;
+    background: #f0f6fc;
+}
+
+.wp-blog-agent-notice.success {
+    border-left-color: #46b450;
+    background: #ecf7ed;
+}
+
+.wp-blog-agent-notice.error {
+    border-left-color: #dc3232;
+    background: #fcf0f1;
+}
+
+.wp-blog-agent-highlight {
+    background: #fff9c4;
+    padding: 2px 5px;
+    border-radius: 2px;
+}
+
+/* Topics page specific styles */
+.wp-blog-agent-topics-container {
+    max-width: 1200px;
+}
+
+.wp-blog-agent-add-topic {
+    background: #fff;
+    padding: 20px;
+    border: 1px solid #ccd0d4;
+    box-shadow: 0 1px 1px rgba(0,0,0,.04);
+    margin-bottom: 30px;
+}
+
+/* Responsive */
+@media screen and (max-width: 782px) {
+    .wp-blog-agent-grid {
+        grid-template-columns: 1fr;
+    }
+}
