@@ -1,0 +1,283 @@
+# WP Blog Agent - Plugin Architecture
+
+## Component Overview
+
+### Core Files
+
+#### wp-blog-agent.php
+- Main plugin file
+- Defines plugin metadata and constants
+- Loads all required classes
+- Registers activation/deactivation hooks
+- Initializes the plugin
+
+### Classes
+
+#### WP_Blog_Agent_Activator
+- **Purpose**: Handles plugin activation
+- **Responsibilities**:
+  - Creates database tables (blog_agent_topics)
+  - Sets default options
+  - Schedules initial cron events
+
+#### WP_Blog_Agent_Deactivator
+- **Purpose**: Handles plugin deactivation
+- **Responsibilities**:
+  - Clears scheduled cron events
+  - Cleanup operations
+
+#### WP_Blog_Agent_Admin
+- **Purpose**: Manages admin interface
+- **Responsibilities**:
+  - Registers admin menu pages
+  - Handles settings and configuration
+  - Processes form submissions (add/delete topics, generate posts)
+  - Enqueues admin assets (CSS/JS)
+
+#### WP_Blog_Agent_OpenAI
+- **Purpose**: OpenAI API integration
+- **Responsibilities**:
+  - Communicates with OpenAI API
+  - Builds prompts for content generation
+  - Processes API responses
+  - Error handling
+
+#### WP_Blog_Agent_Gemini
+- **Purpose**: Google Gemini API integration
+- **Responsibilities**:
+  - Communicates with Gemini API
+  - Builds prompts for content generation
+  - Processes API responses
+  - Error handling
+
+#### WP_Blog_Agent_Generator
+- **Purpose**: Content generation orchestration
+- **Responsibilities**:
+  - Selects topics from database
+  - Calls appropriate AI provider
+  - Parses generated content
+  - Creates WordPress posts
+  - Adds metadata to posts
+
+#### WP_Blog_Agent_Scheduler
+- **Purpose**: Automated scheduling
+- **Responsibilities**:
+  - Hooks into WordPress Cron
+  - Defines custom cron schedules
+  - Triggers scheduled post generation
+  - Updates cron schedules
+
+## Data Flow
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                     User Configuration                       │
+└───────────────────────┬─────────────────────────────────────┘
+                        │
+                        ▼
+┌─────────────────────────────────────────────────────────────┐
+│              Settings Page (Admin Interface)                │
+│  - AI Provider Selection (OpenAI/Gemini)                    │
+│  - API Key Configuration                                     │
+│  - Schedule Settings                                         │
+│  - Auto-Publish Options                                      │
+└───────────────────────┬─────────────────────────────────────┘
+                        │
+                        ▼
+┌─────────────────────────────────────────────────────────────┐
+│                    Topics Management                         │
+│  - Add Topics with Keywords/Hashtags                        │
+│  - View/Edit/Delete Topics                                   │
+│  - Manual Generation Trigger                                 │
+└───────────────────────┬─────────────────────────────────────┘
+                        │
+                        ▼
+┌─────────────────────────────────────────────────────────────┐
+│          Trigger (Manual or Scheduled via WP-Cron)          │
+└───────────────────────┬─────────────────────────────────────┘
+                        │
+                        ▼
+┌─────────────────────────────────────────────────────────────┐
+│              WP_Blog_Agent_Generator                         │
+│                                                              │
+│  1. Select random active topic OR specific topic            │
+│  2. Parse keywords and hashtags                              │
+│  3. Determine AI provider from settings                      │
+└───────────────────────┬─────────────────────────────────────┘
+                        │
+           ┌────────────┴────────────┐
+           │                         │
+           ▼                         ▼
+┌──────────────────┐      ┌──────────────────┐
+│ WP_Blog_Agent_   │      │ WP_Blog_Agent_   │
+│     OpenAI       │      │     Gemini       │
+│                  │      │                  │
+│ - Build prompt   │      │ - Build prompt   │
+│ - Call API       │      │ - Call API       │
+│ - Parse response │      │ - Parse response │
+└────────┬─────────┘      └────────┬─────────┘
+         │                         │
+         └────────────┬────────────┘
+                      │
+                      ▼
+┌─────────────────────────────────────────────────────────────┐
+│              Generated Content (HTML)                        │
+│  - Title (from H1 or first line)                            │
+│  - Body content with proper formatting                       │
+│  - Keywords integrated naturally                             │
+│  - Hashtags appended                                         │
+└───────────────────────┬─────────────────────────────────────┘
+                        │
+                        ▼
+┌─────────────────────────────────────────────────────────────┐
+│              WordPress Post Creation                         │
+│                                                              │
+│  - Extract title and content                                │
+│  - Generate excerpt                                          │
+│  - Set post status (publish or draft)                       │
+│  - Add metadata:                                             │
+│    * _wp_blog_agent_generated                               │
+│    * _wp_blog_agent_topic_id                                │
+│    * _wp_blog_agent_keywords                                │
+│    * _wp_blog_agent_hashtags                                │
+│    * _wp_blog_agent_provider                                │
+└───────────────────────┬─────────────────────────────────────┘
+                        │
+                        ▼
+┌─────────────────────────────────────────────────────────────┐
+│              Published/Draft Post                            │
+│  - Viewable in Generated Posts page                         │
+│  - Standard WordPress post with metadata                     │
+└─────────────────────────────────────────────────────────────┘
+```
+
+## Admin Pages
+
+### 1. Settings Page (wp-blog-agent)
+- Configure AI provider and API keys
+- Enable/disable scheduling
+- Set schedule frequency
+- Configure auto-publish behavior
+- Quick action: Generate post now
+- View next scheduled generation
+
+### 2. Topics Page (wp-blog-agent-topics)
+- Add new topics with keywords and hashtags
+- List all existing topics
+- Generate posts for specific topics
+- Delete topics
+
+### 3. Generated Posts Page (wp-blog-agent-posts)
+- View all posts created by the plugin
+- See post status and metadata
+- Quick links to edit or view posts
+- Shows which AI provider was used
+
+## Database Schema
+
+### Table: wp_blog_agent_topics
+
+```sql
+CREATE TABLE wp_blog_agent_topics (
+    id mediumint(9) NOT NULL AUTO_INCREMENT,
+    topic varchar(255) NOT NULL,
+    keywords text NOT NULL,
+    hashtags text NOT NULL,
+    status varchar(20) DEFAULT 'active',
+    created_at datetime DEFAULT CURRENT_TIMESTAMP,
+    updated_at datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (id)
+);
+```
+
+### Post Metadata
+
+Posts generated by the plugin include the following metadata:
+- `_wp_blog_agent_generated`: Boolean flag (true)
+- `_wp_blog_agent_topic_id`: ID of the topic used
+- `_wp_blog_agent_keywords`: Comma-separated keywords
+- `_wp_blog_agent_hashtags`: Space-separated hashtags
+- `_wp_blog_agent_provider`: AI provider used (openai/gemini)
+
+## WordPress Options
+
+The plugin uses the following options:
+- `wp_blog_agent_ai_provider`: Selected AI provider (openai/gemini)
+- `wp_blog_agent_openai_api_key`: OpenAI API key
+- `wp_blog_agent_gemini_api_key`: Gemini API key
+- `wp_blog_agent_schedule_enabled`: Whether scheduling is enabled (yes/no)
+- `wp_blog_agent_schedule_frequency`: Schedule frequency (hourly/twicedaily/daily/weekly)
+- `wp_blog_agent_auto_publish`: Whether to auto-publish (yes/no)
+
+## Cron System
+
+### Hook: wp_blog_agent_generate_post
+- Triggered based on configured frequency
+- Calls WP_Blog_Agent_Scheduler::scheduled_generation()
+- Generates one post per execution
+
+### Custom Schedules
+- **hourly**: Every 3600 seconds (1 hour)
+- **twicedaily**: Every 43200 seconds (12 hours)
+- **daily**: WordPress default (24 hours)
+- **weekly**: Every 604800 seconds (7 days)
+
+## Security Measures
+
+1. **Nonce Verification**: All form submissions require valid nonces
+2. **Capability Checks**: Admin functions require 'manage_options' capability
+3. **Data Sanitization**: All user inputs are sanitized
+4. **Data Validation**: Input validation before processing
+5. **Direct Access Prevention**: Files check for ABSPATH constant
+6. **Secure API Key Storage**: Keys stored in WordPress options table
+
+## Error Handling
+
+### API Errors
+- Missing API keys return WP_Error
+- Invalid API responses return WP_Error
+- Network errors are caught and logged
+- User-friendly error messages displayed in admin
+
+### Content Generation Errors
+- No active topics returns error
+- Failed API calls are logged
+- Error messages displayed in admin notices
+
+## Extensibility
+
+The plugin is designed with extensibility in mind:
+
+### Hooks for Developers
+Future versions can add WordPress hooks:
+- Before/after content generation
+- Filter generated content
+- Custom AI providers
+- Custom post types
+
+### Class Structure
+All classes are self-contained and can be extended:
+- Add new AI providers by creating similar classes
+- Extend generator for custom content processing
+- Add custom admin pages following existing pattern
+
+## Performance Considerations
+
+1. **API Timeouts**: Set to 60 seconds for long-running API calls
+2. **Cron Scheduling**: Uses WordPress Cron (non-blocking)
+3. **Database Queries**: Optimized with proper indexes
+4. **Asset Loading**: Admin assets only load on plugin pages
+5. **Lazy Loading**: Classes loaded only when needed
+
+## Future Enhancement Ideas
+
+1. **Multi-language Support**: i18n/l10n implementation
+2. **Custom Post Types**: Support for custom content types
+3. **Category Assignment**: Auto-assign posts to categories
+4. **Featured Images**: AI-generated images integration
+5. **Content Templates**: Customizable content templates
+6. **Analytics Dashboard**: Track generation success rates
+7. **Bulk Generation**: Generate multiple posts at once
+8. **Content Calendar**: Visual calendar for scheduled posts
+9. **A/B Testing**: Test different prompts and AI providers
+10. **Export/Import**: Topic configuration export/import
