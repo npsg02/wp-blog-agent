@@ -39,8 +39,11 @@ class WP_Blog_Agent_Scheduler {
         $enabled = get_option('wp_blog_agent_schedule_enabled', 'no');
         
         if ($enabled !== 'yes') {
+            WP_Blog_Agent_Logger::info('Scheduled generation skipped - scheduling disabled');
             return;
         }
+        
+        WP_Blog_Agent_Logger::info('Starting scheduled post generation');
         
         // Generate a post
         $generator = new WP_Blog_Agent_Generator();
@@ -48,8 +51,10 @@ class WP_Blog_Agent_Scheduler {
         
         // Log the result
         if (is_wp_error($result)) {
+            WP_Blog_Agent_Logger::error('Scheduled generation failed', array('error' => $result->get_error_message()));
             error_log('WP Blog Agent: Failed to generate post - ' . $result->get_error_message());
         } else {
+            WP_Blog_Agent_Logger::success('Scheduled generation completed', array('post_id' => $result));
             error_log('WP Blog Agent: Successfully generated post ID: ' . $result);
         }
     }

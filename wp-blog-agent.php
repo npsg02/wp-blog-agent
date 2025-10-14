@@ -24,6 +24,8 @@ define('WP_BLOG_AGENT_PLUGIN_URL', plugin_dir_url(__FILE__));
 define('WP_BLOG_AGENT_PLUGIN_FILE', __FILE__);
 
 // Include required files
+require_once WP_BLOG_AGENT_PLUGIN_DIR . 'includes/class-wp-blog-agent-logger.php';
+require_once WP_BLOG_AGENT_PLUGIN_DIR . 'includes/class-wp-blog-agent-validator.php';
 require_once WP_BLOG_AGENT_PLUGIN_DIR . 'includes/class-wp-blog-agent-activator.php';
 require_once WP_BLOG_AGENT_PLUGIN_DIR . 'includes/class-wp-blog-agent-deactivator.php';
 require_once WP_BLOG_AGENT_PLUGIN_DIR . 'includes/class-wp-blog-agent-admin.php';
@@ -40,7 +42,13 @@ register_deactivation_hook(__FILE__, array('WP_Blog_Agent_Deactivator', 'deactiv
 
 // Initialize the plugin
 function wp_blog_agent_init() {
+    // Initialize logger
+    WP_Blog_Agent_Logger::init();
+    
     $admin = new WP_Blog_Agent_Admin();
     $scheduler = new WP_Blog_Agent_Scheduler();
+    
+    // Log plugin initialization
+    WP_Blog_Agent_Logger::info('Plugin initialized successfully');
 }
 add_action('plugins_loaded', 'wp_blog_agent_init');

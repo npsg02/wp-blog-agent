@@ -53,6 +53,15 @@ class WP_Blog_Agent_Admin {
             'wp-blog-agent-posts',
             array($this, 'render_posts_page')
         );
+        
+        add_submenu_page(
+            'wp-blog-agent',
+            __('Logs', 'wp-blog-agent'),
+            __('Logs', 'wp-blog-agent'),
+            'manage_options',
+            'wp-blog-agent-logs',
+            array($this, 'render_logs_page')
+        );
     }
     
     /**
@@ -132,6 +141,23 @@ class WP_Blog_Agent_Admin {
     }
     
     /**
+     * Render logs page
+     */
+    public function render_logs_page() {
+        if (!current_user_can('manage_options')) {
+            return;
+        }
+        
+        // Handle clear logs action
+        if (isset($_POST['clear_logs']) && check_admin_referer('wp_blog_agent_clear_logs')) {
+            WP_Blog_Agent_Logger::clear_old_logs(0);
+            echo '<div class="notice notice-success"><p>' . __('Logs cleared successfully!', 'wp-blog-agent') . '</p></div>';
+        }
+        
+        include WP_BLOG_AGENT_PLUGIN_DIR . 'admin/logs-page.php';
+    }
+    
+    /**
      * Handle add topic form submission
      */
     public function handle_add_topic() {
@@ -141,18 +167,37 @@ class WP_Blog_Agent_Admin {
         
         check_admin_referer('wp_blog_agent_add_topic');
         
+        // Validate topic data
+        $validated = WP_Blog_Agent_Validator::validate_topic(
+            $_POST['topic'],
+            $_POST['keywords'],
+            $_POST['hashtags']
+        );
+        
+        if (is_wp_error($validated)) {
+            WP_Blog_Agent_Logger::warning('Topic validation failed', array('error' => $validated->get_error_message()));
+            wp_redirect(admin_url('admin.php?page=wp-blog-agent-topics&error=' . urlencode($validated->get_error_message())));
+            exit;
+        }
+        
         global $wpdb;
         $table_name = $wpdb->prefix . 'blog_agent_topics';
         
-        $wpdb->insert(
+        $result = $wpdb->insert(
             $table_name,
             array(
-                'topic' => sanitize_text_field($_POST['topic']),
-                'keywords' => sanitize_textarea_field($_POST['keywords']),
-                'hashtags' => sanitize_textarea_field($_POST['hashtags']),
+                'topic' => $validated['topic'],
+                'keywords' => $validated['keywords'],
+                'hashtags' => $validated['hashtags'],
                 'status' => 'active',
             )
         );
+        
+        if ($result) {
+            WP_Blog_Agent_Logger::success('Topic added', array('topic' => $validated['topic']));
+        } else {
+            WP_Blog_Agent_Logger::error('Failed to add topic', array('topic' => $validated['topic']));
+        }
         
         wp_redirect(admin_url('admin.php?page=wp-blog-agent-topics&added=1'));
         exit;
@@ -171,10 +216,14 @@ class WP_Blog_Agent_Admin {
         global $wpdb;
         $table_name = $wpdb->prefix . 'blog_agent_topics';
         
+        $topic_id = intval($_GET['id']);
+        
         $wpdb->delete(
             $table_name,
-            array('id' => intval($_GET['id']))
+            array('id' => $topic_id)
         );
+        
+        WP_Blog_Agent_Logger::info('Topic deleted', array('topic_id' => $topic_id));
         
         wp_redirect(admin_url('admin.php?page=wp-blog-agent-topics&deleted=1'));
         exit;
@@ -189,6 +238,8 @@ class WP_Blog_Agent_Admin {
         }
         
         check_admin_referer('wp_blog_agent_generate_now');
+        
+        WP_Blog_Agent_Logger::info('Manual generation triggered');
         
         $generator = new WP_Blog_Agent_Generator();
         $topic_id = isset($_GET['topic_id']) ? intval($_GET['topic_id']) : null;

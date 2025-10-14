@@ -10,7 +10,11 @@ A powerful WordPress plugin that automates blog post generation using OpenAI GPT
 - **Topic Management**: Create and manage multiple topics for varied content
 - **Scheduled Publishing**: Automate post generation with flexible scheduling options (hourly, twice daily, daily, weekly)
 - **Auto-Publish**: Automatically publish generated posts or save as drafts for review
+- **Activity Logging**: Track all plugin activities with detailed logs
+- **Input Validation**: Comprehensive validation for all user inputs
+- **Security First**: Nonce verification, capability checks, and sanitized inputs
 - **User-Friendly Admin Interface**: Easy-to-use settings and management pages
+- **Clean Uninstall**: Remove all plugin data when uninstalled
 
 ## Installation
 
@@ -78,6 +82,16 @@ Navigate to **Blog Agent** → **Generated Posts** to:
 - See which AI provider was used
 - Edit or view posts directly
 
+### 5. Monitor Activity
+
+Navigate to **Blog Agent** → **Logs** to:
+
+- View recent plugin activity
+- Check for errors or warnings
+- Monitor content generation success
+- Debug issues
+- Clear old logs
+
 ## Usage
 
 ### Manual Generation
@@ -122,6 +136,12 @@ The plugin creates the following custom table:
 
 - `wp_blog_agent_topics`: Stores topics, keywords, and hashtags
 
+## File Storage
+
+The plugin creates log files in:
+
+- `wp-content/uploads/wp-blog-agent-logs/`: Activity logs (protected with .htaccess)
+
 ## Cron Jobs
 
 The plugin uses WordPress Cron to schedule automated generation:
@@ -135,6 +155,9 @@ The plugin uses WordPress Cron to schedule automated generation:
 - All user inputs are sanitized and validated
 - Nonce verification for all form submissions
 - Capability checks for admin actions
+- Log files protected from direct access
+- Prepared statements for database queries
+- Output escaping to prevent XSS
 
 ## Troubleshooting
 
@@ -155,6 +178,14 @@ The plugin uses WordPress Cron to schedule automated generation:
 
 - Verify that WordPress Cron is working on your server
 - Some hosting providers disable WP-Cron; you may need to set up a system cron job
+- Check the Logs page for scheduling errors
+
+### Check Logs
+
+- Go to **Blog Agent** → **Logs**
+- Look for ERROR or WARNING entries
+- Check timestamps to see when issues occurred
+- Use logs to debug API or generation issues
 
 ## Development
 
@@ -163,6 +194,7 @@ The plugin uses WordPress Cron to schedule automated generation:
 ```
 wp-blog-agent/
 ├── admin/
+│   ├── logs-page.php
 │   ├── posts-page.php
 │   ├── settings-page.php
 │   └── topics-page.php
@@ -177,20 +209,34 @@ wp-blog-agent/
 │   ├── class-wp-blog-agent-deactivator.php
 │   ├── class-wp-blog-agent-gemini.php
 │   ├── class-wp-blog-agent-generator.php
+│   ├── class-wp-blog-agent-logger.php
 │   ├── class-wp-blog-agent-openai.php
-│   └── class-wp-blog-agent-scheduler.php
+│   ├── class-wp-blog-agent-scheduler.php
+│   └── class-wp-blog-agent-validator.php
 ├── .gitignore
+├── ARCHITECTURE.md
+├── CHANGELOG.md
+├── CONTRIBUTING.md
+├── LICENSE
+├── QUICKSTART.md
 ├── README.md
+├── uninstall.php
 └── wp-blog-agent.php
 ```
 
 ## Contributing
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+Contributions are welcome! Please read our [Contributing Guidelines](CONTRIBUTING.md) for details on:
+
+- Code of conduct
+- Development setup
+- Coding standards
+- Pull request process
+- Testing requirements
 
 ## License
 
-This plugin is licensed under the GPL v2 or later.
+This plugin is licensed under the MIT License. See [LICENSE](LICENSE) file for details.
 
 ## Support
 
@@ -211,3 +257,7 @@ Developed by NP2023
 - SEO optimization with keywords
 - Hashtag support
 - Auto-publish functionality
+- Activity logging system
+- Input validation and security
+- Logs viewer interface
+- Clean uninstall process
