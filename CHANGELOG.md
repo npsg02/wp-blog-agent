@@ -38,6 +38,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Custom OpenAI base URL configuration for OpenAI-compatible API services
+- Quick manual topic generation without saving to database
+- Enhanced Topics page with manual generation form
+- Support for one-off content generation
+
 ### Planned Features
 - Multi-language support (i18n/l10n)
 - Custom post type support
