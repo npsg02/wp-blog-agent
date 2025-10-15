@@ -24,34 +24,52 @@ class WP_Blog_Agent_OpenAI {
         
         $prompt = $this->build_prompt($topic, $keywords, $hashtags);
         
+        $request_body = array(
+            'model' => $this->model,
+            'messages' => array(
+                array(
+                    'role' => 'system',
+                    'content' => 'You are a professional blog writer who creates SEO-optimized, engaging content.'
+                ),
+                array(
+                    'role' => 'user',
+                    'content' => $prompt
+                )
+            ),
+            'max_tokens' => 2000,
+            'temperature' => 0.7,
+        );
+        
+        // Log request in debug mode
+        WP_Blog_Agent_Logger::debug('OpenAI API Request', array(
+            'url' => $this->api_url,
+            'model' => $this->model,
+            'body' => $request_body
+        ));
+        
         $response = wp_remote_post($this->api_url, array(
             'headers' => array(
                 'Content-Type' => 'application/json',
                 'Authorization' => 'Bearer ' . $this->api_key,
             ),
-            'body' => json_encode(array(
-                'model' => $this->model,
-                'messages' => array(
-                    array(
-                        'role' => 'system',
-                        'content' => 'You are a professional blog writer who creates SEO-optimized, engaging content.'
-                    ),
-                    array(
-                        'role' => 'user',
-                        'content' => $prompt
-                    )
-                ),
-                'max_tokens' => 2000,
-                'temperature' => 0.7,
-            )),
+            'body' => json_encode($request_body),
             'timeout' => 60,
         ));
         
         if (is_wp_error($response)) {
+            WP_Blog_Agent_Logger::debug('OpenAI API Error', array(
+                'error' => $response->get_error_message()
+            ));
             return $response;
         }
         
         $body = json_decode(wp_remote_retrieve_body($response), true);
+        
+        // Log response in debug mode
+        WP_Blog_Agent_Logger::debug('OpenAI API Response', array(
+            'status_code' => wp_remote_retrieve_response_code($response),
+            'body' => $body
+        ));
         
         if (isset($body['error'])) {
             return new WP_Error('openai_error', $body['error']['message']);

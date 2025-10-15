@@ -58,6 +58,16 @@ class WP_Blog_Agent_Logger {
     }
     
     /**
+     * Log debug message (only when WP_DEBUG is enabled)
+     */
+    public static function debug($message, $context = array()) {
+        // Only log debug messages when WP_DEBUG is enabled
+        if (defined('WP_DEBUG') && WP_DEBUG) {
+            self::log('DEBUG', $message, $context);
+        }
+    }
+    
+    /**
      * Main logging function
      */
     private static function log($level, $message, $context = array()) {
