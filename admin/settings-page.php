@@ -51,6 +51,26 @@
             
             <tr>
                 <th scope="row">
+                    <label for="openai_max_tokens"><?php echo esc_html__('OpenAI Max Output Tokens', 'wp-blog-agent'); ?></label>
+                </th>
+                <td>
+                    <input type="number" name="openai_max_tokens" id="openai_max_tokens" value="<?php echo esc_attr(get_option('wp_blog_agent_openai_max_tokens', '')); ?>" class="regular-text" min="1" placeholder="Unlimited" />
+                    <p class="description"><?php echo esc_html__('Maximum number of tokens to generate. Leave empty for unlimited (model default). Default: unlimited', 'wp-blog-agent'); ?></p>
+                </td>
+            </tr>
+            
+            <tr>
+                <th scope="row">
+                    <label for="openai_system_prompt"><?php echo esc_html__('OpenAI System Prompt', 'wp-blog-agent'); ?></label>
+                </th>
+                <td>
+                    <textarea name="openai_system_prompt" id="openai_system_prompt" class="large-text" rows="3"><?php echo esc_textarea(get_option('wp_blog_agent_openai_system_prompt', 'You are a professional blog writer who creates SEO-optimized, engaging content.')); ?></textarea>
+                    <p class="description"><?php echo esc_html__('Custom system prompt for the AI. Default: "You are a professional blog writer who creates SEO-optimized, engaging content."', 'wp-blog-agent'); ?></p>
+                </td>
+            </tr>
+            
+            <tr>
+                <th scope="row">
                     <label for="gemini_api_key"><?php echo esc_html__('Gemini API Key', 'wp-blog-agent'); ?></label>
                 </th>
                 <td>
@@ -71,6 +91,26 @@
             
             <tr>
                 <th scope="row">
+                    <label for="gemini_max_tokens"><?php echo esc_html__('Gemini Max Output Tokens', 'wp-blog-agent'); ?></label>
+                </th>
+                <td>
+                    <input type="number" name="gemini_max_tokens" id="gemini_max_tokens" value="<?php echo esc_attr(get_option('wp_blog_agent_gemini_max_tokens', '')); ?>" class="regular-text" min="1" placeholder="Unlimited" />
+                    <p class="description"><?php echo esc_html__('Maximum number of tokens to generate. Leave empty for unlimited (model default). Default: unlimited', 'wp-blog-agent'); ?></p>
+                </td>
+            </tr>
+            
+            <tr>
+                <th scope="row">
+                    <label for="gemini_system_prompt"><?php echo esc_html__('Gemini System Prompt', 'wp-blog-agent'); ?></label>
+                </th>
+                <td>
+                    <textarea name="gemini_system_prompt" id="gemini_system_prompt" class="large-text" rows="3"><?php echo esc_textarea(get_option('wp_blog_agent_gemini_system_prompt', 'You are a professional blog writer who creates SEO-optimized, engaging content.')); ?></textarea>
+                    <p class="description"><?php echo esc_html__('Custom system prompt for the AI. This will be prepended to the user prompt. Default: "You are a professional blog writer who creates SEO-optimized, engaging content."', 'wp-blog-agent'); ?></p>
+                </td>
+            </tr>
+            
+            <tr>
+                <th scope="row">
                     <label for="ollama_base_url"><?php echo esc_html__('Ollama Base URL', 'wp-blog-agent'); ?></label>
                 </th>
                 <td>
@@ -86,6 +126,16 @@
                 <td>
                     <input type="text" name="ollama_model" id="ollama_model" value="<?php echo esc_attr(get_option('wp_blog_agent_ollama_model', 'llama2')); ?>" class="regular-text" />
                     <p class="description"><?php echo esc_html__('Ollama model to use (e.g., llama2, mistral, codellama). Default: llama2', 'wp-blog-agent'); ?></p>
+                </td>
+            </tr>
+            
+            <tr>
+                <th scope="row">
+                    <label for="ollama_system_prompt"><?php echo esc_html__('Ollama System Prompt', 'wp-blog-agent'); ?></label>
+                </th>
+                <td>
+                    <textarea name="ollama_system_prompt" id="ollama_system_prompt" class="large-text" rows="3"><?php echo esc_textarea(get_option('wp_blog_agent_ollama_system_prompt', 'You are a professional blog writer who creates SEO-optimized, engaging content.')); ?></textarea>
+                    <p class="description"><?php echo esc_html__('Custom system prompt for the AI. This will be prepended to the user prompt. Default: "You are a professional blog writer who creates SEO-optimized, engaging content."', 'wp-blog-agent'); ?></p>
                 </td>
             </tr>
             

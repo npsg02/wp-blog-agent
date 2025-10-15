@@ -7,11 +7,15 @@ class WP_Blog_Agent_OpenAI {
     private $api_key;
     private $api_url;
     private $model;
+    private $max_tokens;
+    private $system_prompt;
     
     public function __construct() {
         $this->api_key = get_option('wp_blog_agent_openai_api_key', '');
         $this->api_url = get_option('wp_blog_agent_openai_base_url', 'https://api.openai.com/v1/chat/completions');
         $this->model = get_option('wp_blog_agent_openai_model', 'gpt-3.5-turbo');
+        $this->max_tokens = get_option('wp_blog_agent_openai_max_tokens', '');
+        $this->system_prompt = get_option('wp_blog_agent_openai_system_prompt', 'You are a professional blog writer who creates SEO-optimized, engaging content.');
     }
     
     /**
@@ -29,16 +33,20 @@ class WP_Blog_Agent_OpenAI {
             'messages' => array(
                 array(
                     'role' => 'system',
-                    'content' => 'You are a professional blog writer who creates SEO-optimized, engaging content.'
+                    'content' => $this->system_prompt
                 ),
                 array(
                     'role' => 'user',
                     'content' => $prompt
                 )
             ),
-            'max_tokens' => 2000,
             'temperature' => 0.7,
         );
+        
+        // Add max_tokens only if it's set (unlimited by default)
+        if (!empty($this->max_tokens)) {
+            $request_body['max_tokens'] = intval($this->max_tokens);
+        }
         
         // Log request
         WP_Blog_Agent_Logger::info('OpenAI API Request', array(
