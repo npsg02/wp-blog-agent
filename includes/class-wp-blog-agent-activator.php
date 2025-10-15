@@ -14,7 +14,7 @@ class WP_Blog_Agent_Activator {
         
         // Create topics table
         $topics_table = $wpdb->prefix . 'blog_agent_topics';
-        $topics_sql = "CREATE TABLE IF NOT EXISTS $topics_table (
+        $topics_sql = "CREATE TABLE $topics_table (
             id mediumint(9) NOT NULL AUTO_INCREMENT,
             topic varchar(255) NOT NULL,
             keywords text NOT NULL,
@@ -27,7 +27,7 @@ class WP_Blog_Agent_Activator {
         
         // Create queue table
         $queue_table = $wpdb->prefix . 'blog_agent_queue';
-        $queue_sql = "CREATE TABLE IF NOT EXISTS $queue_table (
+        $queue_sql = "CREATE TABLE $queue_table (
             id mediumint(9) NOT NULL AUTO_INCREMENT,
             topic_id mediumint(9) DEFAULT NULL,
             status varchar(20) DEFAULT 'pending',

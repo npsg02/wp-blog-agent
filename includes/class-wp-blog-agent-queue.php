@@ -13,6 +13,63 @@ class WP_Blog_Agent_Queue {
     }
     
     /**
+     * Ensure queue table exists, create if not
+     * 
+     * @return bool True on success, false on failure
+     */
+    private static function ensure_table_exists() {
+        global $wpdb;
+        
+        $table_name = self::get_table_name();
+        
+        // Check if table exists
+        $table_exists = $wpdb->get_var("SHOW TABLES LIKE '$table_name'") === $table_name;
+        
+        if ($table_exists) {
+            return true;
+        }
+        
+        // Table doesn't exist, create it
+        $charset_collate = $wpdb->get_charset_collate();
+        
+        $sql = "CREATE TABLE $table_name (
+            id mediumint(9) NOT NULL AUTO_INCREMENT,
+            topic_id mediumint(9) DEFAULT NULL,
+            status varchar(20) DEFAULT 'pending',
+            trigger varchar(50) DEFAULT 'manual',
+            post_id bigint(20) DEFAULT NULL,
+            attempts int DEFAULT 0,
+            error_message text DEFAULT NULL,
+            created_at datetime DEFAULT CURRENT_TIMESTAMP,
+            started_at datetime DEFAULT NULL,
+            completed_at datetime DEFAULT NULL,
+            PRIMARY KEY (id),
+            KEY status (status),
+            KEY created_at (created_at)
+        ) $charset_collate;";
+        
+        require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
+        dbDelta($sql);
+        
+        // Verify table was created
+        $table_exists = $wpdb->get_var("SHOW TABLES LIKE '$table_name'") === $table_name;
+        
+        if (!$table_exists) {
+            WP_Blog_Agent_Logger::error('Failed to create queue table', array(
+                'table_name' => $table_name,
+                'error' => $wpdb->last_error
+            ));
+            return false;
+        }
+        
+        WP_Blog_Agent_Logger::info('Queue table created successfully', array(
+            'table_name' => $table_name
+        ));
+        
+        return true;
+    }
+    
+    /**
      * Add a generation task to the queue
      * 
      * @param int|null $topic_id Topic ID to generate from (null for random)
@@ -21,6 +78,15 @@ class WP_Blog_Agent_Queue {
      */
     public static function enqueue($topic_id = null, $trigger = 'manual') {
         global $wpdb;
+        
+        // Ensure table exists before attempting to insert
+        if (!self::ensure_table_exists()) {
+            WP_Blog_Agent_Logger::error('Cannot enqueue task - table does not exist and could not be created', array(
+                'topic_id' => $topic_id,
+                'trigger' => $trigger
+            ));
+            return false;
+        }
         
         $table_name = self::get_table_name();
         
@@ -68,6 +134,11 @@ class WP_Blog_Agent_Queue {
      */
     public static function get_next_task() {
         global $wpdb;
+        
+        // Ensure table exists
+        if (!self::ensure_table_exists()) {
+            return null;
+        }
         
         $table_name = self::get_table_name();
         
@@ -239,6 +310,17 @@ class WP_Blog_Agent_Queue {
     public static function get_stats() {
         global $wpdb;
         
+        // Ensure table exists
+        if (!self::ensure_table_exists()) {
+            return array(
+                'pending' => 0,
+                'processing' => 0,
+                'completed' => 0,
+                'failed' => 0,
+                'total' => 0
+            );
+        }
+        
         $table_name = self::get_table_name();
         
         $stats = array(
@@ -271,6 +353,11 @@ class WP_Blog_Agent_Queue {
      */
     public static function get_recent($limit = 10) {
         global $wpdb;
+        
+        // Ensure table exists
+        if (!self::ensure_table_exists()) {
+            return array();
+        }
         
         $table_name = self::get_table_name();
         
