@@ -215,6 +215,47 @@ Manual Generation: Use "Generate" button for each topic
 - Use the free tier when possible
 - Scale up gradually
 
+## Using Image Generation
+
+### Generate Images for Blog Posts
+
+1. **Access Image Generation**
+   - Go to **Blog Agent → Image Generation**
+
+2. **Generate Your First Image**
+   - Enter a detailed prompt: "Create a professional blog header image showing modern web development tools"
+   - Choose aspect ratio: 16:9 (best for blog headers)
+   - Select size: 1K (faster) or 4K (higher quality)
+   - Click **Generate Image**
+
+3. **Attach to Existing Post**
+   - Find your post ID (visible in post edit URL)
+   - Enter the post ID in "Attach to Post" field
+   - Check "Set as Featured Image"
+   - Generate the image
+
+4. **View Generated Images**
+   - Scroll down to see recently generated images
+   - Click "View Details" to access in media library
+   - Use images in your blog posts
+
+### Image Generation Tips
+
+- **Be Specific**: Detailed prompts produce better results
+  - Good: "Create a vibrant illustration of a developer coding at a modern desk with dual monitors, coffee cup, and plants"
+  - Poor: "Developer working"
+
+- **Aspect Ratios**:
+  - 16:9 - Blog headers, featured images
+  - 4:3 - Standard content images
+  - 1:1 - Social media, thumbnails
+  - 3:4 - Portrait orientation
+
+- **Image Sizes**:
+  - 1K (1024px) - Fast generation, good for most uses
+  - 2K (2048px) - Higher quality, balanced
+  - 4K (4096px) - Maximum quality, slower generation
+
 ## Next Steps
 
 1. ✓ Plugin installed and activated

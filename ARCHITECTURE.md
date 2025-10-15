@@ -50,6 +50,16 @@
   - Processes API responses
   - Error handling
 
+#### WP_Blog_Agent_Image_Generator
+- **Purpose**: Gemini Imagen API integration for image generation
+- **Responsibilities**:
+  - Generates images using Gemini Imagen API
+  - Decodes base64 image data
+  - Uploads images to WordPress media library
+  - Attaches images to posts
+  - Sets featured images
+  - Manages image metadata
+
 #### WP_Blog_Agent_Generator
 - **Purpose**: Content generation orchestration
 - **Responsibilities**:
@@ -172,6 +182,20 @@
 - See post status and metadata
 - Quick links to edit or view posts
 - Shows which AI provider was used
+
+### 4. Logs Page (wp-blog-agent-logs)
+- View plugin activity logs
+- Filter by log level (info, warning, error)
+- Debug generation issues
+- Clear old logs
+
+### 5. Image Generation Page (wp-blog-agent-image-gen)
+- Generate images using Gemini Imagen API
+- Configure image parameters (aspect ratio, size)
+- Attach images to specific posts
+- Set as featured image automatically
+- View recently generated images
+- Direct access to media library
 
 ## Database Schema
 

@@ -12,6 +12,7 @@ class WP_Blog_Agent_Admin {
         add_action('admin_post_wp_blog_agent_delete_topic', array($this, 'handle_delete_topic'));
         add_action('admin_post_wp_blog_agent_generate_now', array($this, 'handle_generate_now'));
         add_action('admin_post_wp_blog_agent_generate_manual', array($this, 'handle_generate_manual'));
+        add_action('admin_post_wp_blog_agent_generate_image', array($this, 'handle_generate_image'));
     }
     
     /**
@@ -62,6 +63,15 @@ class WP_Blog_Agent_Admin {
             'manage_options',
             'wp-blog-agent-logs',
             array($this, 'render_logs_page')
+        );
+        
+        add_submenu_page(
+            'wp-blog-agent',
+            __('Image Generation', 'wp-blog-agent'),
+            __('Image Generation', 'wp-blog-agent'),
+            'manage_options',
+            'wp-blog-agent-image-gen',
+            array($this, 'render_image_gen_page')
         );
     }
     
@@ -176,6 +186,17 @@ class WP_Blog_Agent_Admin {
         }
         
         include WP_BLOG_AGENT_PLUGIN_DIR . 'admin/logs-page.php';
+    }
+    
+    /**
+     * Render image generation page
+     */
+    public function render_image_gen_page() {
+        if (!current_user_can('manage_options')) {
+            return;
+        }
+        
+        include WP_BLOG_AGENT_PLUGIN_DIR . 'admin/image-gen-page.php';
     }
     
     /**
@@ -408,5 +429,79 @@ class WP_Blog_Agent_Admin {
             'title' => $title ?: 'Untitled Post',
             'content' => trim($content)
         );
+    }
+    
+    /**
+     * Handle image generation
+     */
+    public function handle_generate_image() {
+        if (!current_user_can('manage_options')) {
+            wp_die('Unauthorized');
+        }
+        
+        check_admin_referer('wp_blog_agent_generate_image');
+        
+        // Validate input
+        if (empty($_POST['image_prompt'])) {
+            wp_redirect(admin_url('admin.php?page=wp-blog-agent-image-gen&error=' . urlencode('Image prompt is required.')));
+            exit;
+        }
+        
+        $prompt = sanitize_textarea_field($_POST['image_prompt']);
+        $post_id = isset($_POST['post_id']) ? intval($_POST['post_id']) : 0;
+        $aspect_ratio = isset($_POST['aspect_ratio']) ? sanitize_text_field($_POST['aspect_ratio']) : '16:9';
+        $image_size = isset($_POST['image_size']) ? sanitize_text_field($_POST['image_size']) : '1K';
+        $set_featured = isset($_POST['set_featured']) && $_POST['set_featured'] === '1';
+        
+        WP_Blog_Agent_Logger::info('Image generation triggered', array(
+            'prompt' => substr($prompt, 0, 100),
+            'post_id' => $post_id,
+            'aspect_ratio' => $aspect_ratio,
+            'image_size' => $image_size
+        ));
+        
+        // Generate and save image
+        $image_generator = new WP_Blog_Agent_Image_Generator();
+        
+        $params = array(
+            'aspectRatio' => $aspect_ratio,
+            'imageSize' => $image_size,
+            'sampleCount' => 1,
+            'outputMimeType' => 'image/jpeg',
+            'personGeneration' => 'ALLOW_ALL'
+        );
+        
+        // If set_featured is false or post_id is 0, don't attach to post
+        $attach_post_id = ($set_featured && $post_id > 0) ? $post_id : 0;
+        
+        $attachment_id = $image_generator->generate_and_save($prompt, $attach_post_id, $params);
+        
+        if (is_wp_error($attachment_id)) {
+            WP_Blog_Agent_Logger::error('Image generation failed', array(
+                'error' => $attachment_id->get_error_message()
+            ));
+            wp_redirect(admin_url('admin.php?page=wp-blog-agent-image-gen&error=' . urlencode($attachment_id->get_error_message())));
+            exit;
+        }
+        
+        // Store metadata
+        update_post_meta($attachment_id, '_wp_blog_agent_generated_image', true);
+        update_post_meta($attachment_id, '_wp_blog_agent_image_prompt', $prompt);
+        update_post_meta($attachment_id, '_wp_blog_agent_image_params', array(
+            'aspect_ratio' => $aspect_ratio,
+            'image_size' => $image_size
+        ));
+        
+        if ($post_id > 0) {
+            update_post_meta($attachment_id, '_wp_blog_agent_attached_post', $post_id);
+        }
+        
+        WP_Blog_Agent_Logger::success('Image generated and saved successfully', array(
+            'attachment_id' => $attachment_id,
+            'post_id' => $post_id
+        ));
+        
+        wp_redirect(admin_url('admin.php?page=wp-blog-agent-image-gen&generated=' . $attachment_id));
+        exit;
     }
 }
