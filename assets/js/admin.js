@@ -32,8 +32,6 @@
                 $('#gemini_model').closest('tr').show();
                 $('#gemini_max_tokens').closest('tr').show();
                 $('#gemini_system_prompt').closest('tr').show();
-                $('#gemini_max_tokens').closest('tr').show();
-                $('#gemini_system_prompt').closest('tr').show();
                 $('#ollama_base_url').closest('tr').hide();
                 $('#ollama_model').closest('tr').hide();
                 $('#ollama_system_prompt').closest('tr').hide();
