@@ -8,7 +8,7 @@ class WP_Blog_Agent_Image_Generator {
     private $model_id;
     
     public function __construct() {
-        $this->api_key = get_option('wp_blog_agent_gemini_api_key', '');
+        $this->api_key = get_option('wp_blog_agent_gemini_image_api_key', '');
         $this->model_id = 'models/imagen-3.0-generate-001';
     }
     
@@ -21,7 +21,7 @@ class WP_Blog_Agent_Image_Generator {
      */
     public function generate_image($prompt, $params = array()) {
         if (empty($this->api_key)) {
-            return new WP_Error('no_api_key', 'Gemini API key is not configured.');
+            return new WP_Error('no_api_key', 'Gemini Image API key is not configured.');
         }
         
         // Default parameters
