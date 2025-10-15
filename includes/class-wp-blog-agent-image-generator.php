@@ -9,7 +9,7 @@ class WP_Blog_Agent_Image_Generator {
     
     public function __construct() {
         $this->api_key = get_option('wp_blog_agent_gemini_image_api_key', '');
-        $this->model_id = 'models/imagen-3.0-generate-001';
+        $this->model_id = 'models/imagen-4.0-generate-001';
     }
     
     /**

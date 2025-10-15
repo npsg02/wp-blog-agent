@@ -66,6 +66,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Better validation of API responses with comprehensive checks
 - Support for different OpenAI-compatible API response formats
 - More descriptive error messages for troubleshooting API issues
+- **Updated Gemini Imagen model to version 4.0 (imagen-4.0-generate-001) for improved image quality**
 - **Post generation now uses asynchronous queue system for better reliability**
 - **Non-blocking generation requests improve UI responsiveness**
 
