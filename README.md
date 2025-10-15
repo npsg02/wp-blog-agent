@@ -5,6 +5,8 @@ A powerful WordPress plugin that automates blog post generation using OpenAI GPT
 ## Features
 
 - **AI-Powered Content Generation**: Choose between OpenAI (GPT) or Google Gemini for content creation
+- **Custom OpenAI Base URL**: Configure custom API endpoints for OpenAI-compatible services
+- **Quick Manual Generation**: Generate posts immediately without saving topics to the database
 - **SEO Optimization**: Automatically include keywords with proper density for search engine optimization
 - **Hashtag Support**: Add relevant hashtags to boost social media visibility
 - **Topic Management**: Create and manage multiple topics for varied content
@@ -55,6 +57,7 @@ Navigate to **Blog Agent** → **Settings** to configure:
 
 - **AI Provider**: Choose between OpenAI (GPT) or Google Gemini
 - **API Keys**: Enter your API key for the selected provider
+- **OpenAI Base URL** (OpenAI only): Custom API endpoint URL for OpenAI-compatible services (default: https://api.openai.com/v1/chat/completions)
 - **Enable Scheduling**: Turn on/off automated post generation
 - **Schedule Frequency**: Choose how often to generate posts (hourly, twice daily, daily, weekly)
 - **Auto Publish**: Decide whether to publish posts automatically or save as drafts
@@ -63,7 +66,11 @@ Navigate to **Blog Agent** → **Settings** to configure:
 
 Navigate to **Blog Agent** → **Topics** to:
 
-- **Add Topics**: Create new topics with keywords and hashtags
+- **Quick Generate (Manual Topic)**: Generate a post immediately without saving the topic to the database
+  - Enter topic, keywords, and hashtags
+  - Click "Generate Now" for instant content creation
+  - Perfect for one-off posts or testing
+- **Add Topics**: Create new topics with keywords and hashtags for scheduled generation
 - **View Topics**: See all configured topics
 - **Generate**: Manually generate a post for any specific topic
 - **Delete**: Remove topics you no longer need
@@ -94,25 +101,28 @@ Navigate to **Blog Agent** → **Logs** to:
 
 ## Usage
 
-### Manual Generation
+### Quick Manual Generation
 
-1. Go to **Blog Agent** → **Settings**
-2. Click **Generate Post Now** button
-3. The plugin will randomly select an active topic and generate a post
+1. Go to **Blog Agent** → **Topics**
+2. Find the "Quick Generate (Manual Topic)" section at the top
+3. Enter your topic, keywords, and hashtags
+4. Click **Generate Now**
+5. The post will be generated and created immediately without saving the topic
 
-### Scheduled Generation
+### Scheduled Automatic Generation
 
 1. Go to **Blog Agent** → **Settings**
 2. Set **Enable Scheduling** to "Yes"
 3. Choose your preferred **Schedule Frequency**
 4. Save settings
-5. Posts will be automatically generated based on your schedule
+5. Posts will be automatically generated based on your schedule using random active topics
 
 ### Topic-Specific Generation
 
 1. Go to **Blog Agent** → **Topics**
 2. Find the topic you want to generate content for
 3. Click the **Generate** button next to that topic
+4. A post will be generated using that specific topic
 
 ## How It Works
 

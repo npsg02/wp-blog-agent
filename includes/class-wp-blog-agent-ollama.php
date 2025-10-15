@@ -1,48 +1,33 @@
 <?php
 /**
- * Google Gemini API Integration
+ * Ollama API Integration
  */
-class WP_Blog_Agent_Gemini {
+class WP_Blog_Agent_Ollama {
     
-    private $api_key;
+    private $api_url;
     private $model;
     
     public function __construct() {
-        $this->api_key = get_option('wp_blog_agent_gemini_api_key', '');
-        $this->model = get_option('wp_blog_agent_gemini_model', 'gemini-pro');
+        $this->api_url = get_option('wp_blog_agent_ollama_base_url', 'http://localhost:11434/api/generate');
+        $this->model = get_option('wp_blog_agent_ollama_model', 'llama2');
     }
     
     /**
-     * Generate blog post using Gemini
+     * Generate blog post using Ollama
      */
     public function generate_content($topic, $keywords, $hashtags) {
-        if (empty($this->api_key)) {
-            return new WP_Error('no_api_key', 'Gemini API key is not configured.');
-        }
-        
         $prompt = $this->build_prompt($topic, $keywords, $hashtags);
         
-        $api_url = 'https://generativelanguage.googleapis.com/v1/models/' . $this->model . ':generateContent';
-        $url = $api_url . '?key=' . $this->api_key;
-        
-        $response = wp_remote_post($url, array(
+        $response = wp_remote_post($this->api_url, array(
             'headers' => array(
                 'Content-Type' => 'application/json',
             ),
             'body' => json_encode(array(
-                'contents' => array(
-                    array(
-                        'parts' => array(
-                            array('text' => $prompt)
-                        )
-                    )
-                ),
-                'generationConfig' => array(
-                    'temperature' => 0.7,
-                    'maxOutputTokens' => 2048,
-                )
+                'model' => $this->model,
+                'prompt' => $prompt,
+                'stream' => false,
             )),
-            'timeout' => 60,
+            'timeout' => 120, // Ollama might take longer for local models
         ));
         
         if (is_wp_error($response)) {
@@ -52,14 +37,14 @@ class WP_Blog_Agent_Gemini {
         $body = json_decode(wp_remote_retrieve_body($response), true);
         
         if (isset($body['error'])) {
-            return new WP_Error('gemini_error', $body['error']['message']);
+            return new WP_Error('ollama_error', $body['error']);
         }
         
-        if (!isset($body['candidates'][0]['content']['parts'][0]['text'])) {
-            return new WP_Error('invalid_response', 'Invalid response from Gemini API.');
+        if (!isset($body['response'])) {
+            return new WP_Error('invalid_response', 'Invalid response from Ollama API.');
         }
         
-        return $body['candidates'][0]['content']['parts'][0]['text'];
+        return $body['response'];
     }
     
     /**

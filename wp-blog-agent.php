@@ -32,6 +32,7 @@ require_once WP_BLOG_AGENT_PLUGIN_DIR . 'includes/class-wp-blog-agent-admin.php'
 require_once WP_BLOG_AGENT_PLUGIN_DIR . 'includes/class-wp-blog-agent-generator.php';
 require_once WP_BLOG_AGENT_PLUGIN_DIR . 'includes/class-wp-blog-agent-openai.php';
 require_once WP_BLOG_AGENT_PLUGIN_DIR . 'includes/class-wp-blog-agent-gemini.php';
+require_once WP_BLOG_AGENT_PLUGIN_DIR . 'includes/class-wp-blog-agent-ollama.php';
 require_once WP_BLOG_AGENT_PLUGIN_DIR . 'includes/class-wp-blog-agent-scheduler.php';
 
 // Activation hook

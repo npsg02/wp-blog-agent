@@ -11,6 +11,7 @@ class WP_Blog_Agent_Admin {
         add_action('admin_post_wp_blog_agent_add_topic', array($this, 'handle_add_topic'));
         add_action('admin_post_wp_blog_agent_delete_topic', array($this, 'handle_delete_topic'));
         add_action('admin_post_wp_blog_agent_generate_now', array($this, 'handle_generate_now'));
+        add_action('admin_post_wp_blog_agent_generate_manual', array($this, 'handle_generate_manual'));
     }
     
     /**
@@ -70,7 +71,12 @@ class WP_Blog_Agent_Admin {
     public function register_settings() {
         register_setting('wp_blog_agent_settings', 'wp_blog_agent_ai_provider');
         register_setting('wp_blog_agent_settings', 'wp_blog_agent_openai_api_key');
+        register_setting('wp_blog_agent_settings', 'wp_blog_agent_openai_base_url');
+        register_setting('wp_blog_agent_settings', 'wp_blog_agent_openai_model');
         register_setting('wp_blog_agent_settings', 'wp_blog_agent_gemini_api_key');
+        register_setting('wp_blog_agent_settings', 'wp_blog_agent_gemini_model');
+        register_setting('wp_blog_agent_settings', 'wp_blog_agent_ollama_base_url');
+        register_setting('wp_blog_agent_settings', 'wp_blog_agent_ollama_model');
         register_setting('wp_blog_agent_settings', 'wp_blog_agent_schedule_enabled');
         register_setting('wp_blog_agent_settings', 'wp_blog_agent_schedule_frequency');
         register_setting('wp_blog_agent_settings', 'wp_blog_agent_auto_publish');
@@ -102,7 +108,12 @@ class WP_Blog_Agent_Admin {
             
             update_option('wp_blog_agent_ai_provider', sanitize_text_field($_POST['ai_provider']));
             update_option('wp_blog_agent_openai_api_key', sanitize_text_field($_POST['openai_api_key']));
+            update_option('wp_blog_agent_openai_base_url', esc_url_raw($_POST['openai_base_url']));
+            update_option('wp_blog_agent_openai_model', sanitize_text_field($_POST['openai_model']));
             update_option('wp_blog_agent_gemini_api_key', sanitize_text_field($_POST['gemini_api_key']));
+            update_option('wp_blog_agent_gemini_model', sanitize_text_field($_POST['gemini_model']));
+            update_option('wp_blog_agent_ollama_base_url', esc_url_raw($_POST['ollama_base_url']));
+            update_option('wp_blog_agent_ollama_model', sanitize_text_field($_POST['ollama_model']));
             update_option('wp_blog_agent_schedule_enabled', sanitize_text_field($_POST['schedule_enabled']));
             update_option('wp_blog_agent_auto_publish', sanitize_text_field($_POST['auto_publish']));
             
@@ -251,5 +262,141 @@ class WP_Blog_Agent_Admin {
             wp_redirect(admin_url('admin.php?page=wp-blog-agent-posts&generated=' . $result));
         }
         exit;
+    }
+    
+    /**
+     * Handle manual topic generation
+     */
+    public function handle_generate_manual() {
+        if (!current_user_can('manage_options')) {
+            wp_die('Unauthorized');
+        }
+        
+        check_admin_referer('wp_blog_agent_generate_manual');
+        
+        // Validate topic data
+        $validated = WP_Blog_Agent_Validator::validate_topic(
+            $_POST['manual_topic'],
+            $_POST['manual_keywords'],
+            isset($_POST['manual_hashtags']) ? $_POST['manual_hashtags'] : ''
+        );
+        
+        if (is_wp_error($validated)) {
+            WP_Blog_Agent_Logger::warning('Manual topic validation failed', array('error' => $validated->get_error_message()));
+            wp_redirect(admin_url('admin.php?page=wp-blog-agent-topics&error=' . urlencode($validated->get_error_message())));
+            exit;
+        }
+        
+        WP_Blog_Agent_Logger::info('Manual generation with custom topic triggered', array('topic' => $validated['topic']));
+        
+        // Parse keywords and hashtags
+        $keywords = array_filter(array_map('trim', explode(',', $validated['keywords'])));
+        $hashtags = array_filter(array_map('trim', explode(',', $validated['hashtags'])));
+        
+        // Add # prefix to hashtags if not present
+        $hashtags = array_map(function($tag) {
+            return strpos($tag, '#') === 0 ? $tag : '#' . $tag;
+        }, $hashtags);
+        
+        // Get AI provider
+        $provider = get_option('wp_blog_agent_ai_provider', 'openai');
+        
+        // Generate content
+        if ($provider === 'gemini') {
+            $ai = new WP_Blog_Agent_Gemini();
+        } elseif ($provider === 'ollama') {
+            $ai = new WP_Blog_Agent_Ollama();
+        } else {
+            $ai = new WP_Blog_Agent_OpenAI();
+        }
+        
+        $content = $ai->generate_content($validated['topic'], $keywords, $hashtags);
+        
+        if (is_wp_error($content)) {
+            WP_Blog_Agent_Logger::error('Manual content generation failed', array(
+                'error' => $content->get_error_message(),
+                'provider' => $provider
+            ));
+            wp_redirect(admin_url('admin.php?page=wp-blog-agent-topics&error=' . urlencode($content->get_error_message())));
+            exit;
+        }
+        
+        WP_Blog_Agent_Logger::info('Manual content generated successfully', array('provider' => $provider));
+        
+        // Parse content to extract title and body
+        $parsed = $this->parse_generated_content($content);
+        
+        // Determine post status
+        $auto_publish = get_option('wp_blog_agent_auto_publish', 'yes');
+        $post_status = ($auto_publish === 'yes') ? 'publish' : 'draft';
+        
+        // Create the post
+        $post_data = array(
+            'post_title'   => $parsed['title'],
+            'post_content' => $parsed['content'],
+            'post_status'  => $post_status,
+            'post_author'  => 1,
+            'post_type'    => 'post',
+            'post_excerpt' => $this->generate_excerpt($parsed['content']),
+        );
+        
+        $post_id = wp_insert_post($post_data);
+        
+        if (is_wp_error($post_id)) {
+            WP_Blog_Agent_Logger::error('Post creation failed', array('error' => $post_id->get_error_message()));
+            wp_redirect(admin_url('admin.php?page=wp-blog-agent-topics&error=' . urlencode($post_id->get_error_message())));
+            exit;
+        }
+        
+        WP_Blog_Agent_Logger::success('Manual post created successfully', array(
+            'post_id' => $post_id,
+            'title' => $parsed['title'],
+            'status' => $post_status
+        ));
+        
+        // Add metadata
+        update_post_meta($post_id, '_wp_blog_agent_generated', true);
+        update_post_meta($post_id, '_wp_blog_agent_topic_id', 0); // 0 indicates manual generation
+        update_post_meta($post_id, '_wp_blog_agent_keywords', implode(', ', $keywords));
+        update_post_meta($post_id, '_wp_blog_agent_hashtags', implode(' ', $hashtags));
+        update_post_meta($post_id, '_wp_blog_agent_provider', $provider);
+        
+        wp_redirect(admin_url('admin.php?page=wp-blog-agent-posts&generated=' . $post_id));
+        exit;
+    }
+    
+    /**
+     * Generate excerpt from content
+     */
+    private function generate_excerpt($content) {
+        $text = strip_tags($content);
+        $text = preg_replace('/\s+/', ' ', $text);
+        if (strlen($text) > 150) {
+            $text = substr($text, 0, 147) . '...';
+        }
+        return $text;
+    }
+    
+    /**
+     * Parse content to extract title and body
+     */
+    private function parse_generated_content($content) {
+        // Try to extract title from h1 tag
+        if (preg_match('/<h1[^>]*>(.*?)<\/h1>/is', $content, $matches)) {
+            $title = strip_tags($matches[1]);
+            $content = preg_replace('/<h1[^>]*>.*?<\/h1>/is', '', $content, 1);
+        } else {
+            // Try to get first line as title
+            $lines = explode("\n", strip_tags($content));
+            $title = trim($lines[0]);
+            if (strlen($title) > 100) {
+                $title = substr($title, 0, 97) . '...';
+            }
+        }
+        
+        return array(
+            'title' => $title ?: 'Untitled Post',
+            'content' => trim($content)
+        );
     }
 }

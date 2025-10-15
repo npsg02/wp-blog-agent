@@ -11,10 +11,28 @@
             
             if (provider === 'openai') {
                 $('#openai_api_key').closest('tr').show();
+                $('#openai_base_url').closest('tr').show();
+                $('#openai_model').closest('tr').show();
                 $('#gemini_api_key').closest('tr').hide();
+                $('#gemini_model').closest('tr').hide();
+                $('#ollama_base_url').closest('tr').hide();
+                $('#ollama_model').closest('tr').hide();
             } else if (provider === 'gemini') {
                 $('#openai_api_key').closest('tr').hide();
+                $('#openai_base_url').closest('tr').hide();
+                $('#openai_model').closest('tr').hide();
                 $('#gemini_api_key').closest('tr').show();
+                $('#gemini_model').closest('tr').show();
+                $('#ollama_base_url').closest('tr').hide();
+                $('#ollama_model').closest('tr').hide();
+            } else if (provider === 'ollama') {
+                $('#openai_api_key').closest('tr').hide();
+                $('#openai_base_url').closest('tr').hide();
+                $('#openai_model').closest('tr').hide();
+                $('#gemini_api_key').closest('tr').hide();
+                $('#gemini_model').closest('tr').hide();
+                $('#ollama_base_url').closest('tr').show();
+                $('#ollama_model').closest('tr').show();
             }
         }).trigger('change');
         
@@ -39,8 +57,9 @@
             } else if (provider === 'gemini') {
                 apiKey = $('#gemini_api_key').val();
             }
+            // Ollama doesn't require an API key
             
-            if (!apiKey && $('#schedule_enabled').val() === 'yes') {
+            if (!apiKey && provider !== 'ollama' && $('#schedule_enabled').val() === 'yes') {
                 e.preventDefault();
                 alert('Please enter an API key for the selected AI provider before enabling scheduling.');
                 return false;
