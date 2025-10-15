@@ -13,6 +13,10 @@ class WP_Blog_Agent_Admin {
         add_action('admin_post_wp_blog_agent_generate_now', array($this, 'handle_generate_now'));
         add_action('admin_post_wp_blog_agent_generate_manual', array($this, 'handle_generate_manual'));
         add_action('admin_post_wp_blog_agent_generate_image', array($this, 'handle_generate_image'));
+        
+        // AJAX handlers for RankMath SEO generation
+        add_action('wp_ajax_wp_blog_agent_generate_seo', array($this, 'ajax_generate_seo'));
+        add_action('wp_ajax_wp_blog_agent_generate_post_image', array($this, 'ajax_generate_post_image'));
     }
     
     /**
@@ -109,6 +113,7 @@ class WP_Blog_Agent_Admin {
         register_setting('wp_blog_agent_general_settings', 'wp_blog_agent_schedule_frequency');
         register_setting('wp_blog_agent_general_settings', 'wp_blog_agent_auto_publish');
         register_setting('wp_blog_agent_general_settings', 'wp_blog_agent_auto_generate_image');
+        register_setting('wp_blog_agent_general_settings', 'wp_blog_agent_auto_generate_seo');
     }
     
     /**
@@ -121,6 +126,13 @@ class WP_Blog_Agent_Admin {
         
         wp_enqueue_style('wp-blog-agent-admin', WP_BLOG_AGENT_PLUGIN_URL . 'assets/css/admin.css', array(), WP_BLOG_AGENT_VERSION);
         wp_enqueue_script('wp-blog-agent-admin', WP_BLOG_AGENT_PLUGIN_URL . 'assets/js/admin.js', array('jquery'), WP_BLOG_AGENT_VERSION, true);
+        
+        // Pass AJAX URL and nonces to JavaScript
+        wp_localize_script('wp-blog-agent-admin', 'wpBlogAgent', array(
+            'ajaxUrl' => admin_url('admin-ajax.php'),
+            'seoNonce' => wp_create_nonce('wp_blog_agent_seo_nonce'),
+            'imageNonce' => wp_create_nonce('wp_blog_agent_image_nonce')
+        ));
     }
     
     /**
@@ -160,6 +172,7 @@ class WP_Blog_Agent_Admin {
             update_option('wp_blog_agent_schedule_enabled', sanitize_text_field($_POST['schedule_enabled']));
             update_option('wp_blog_agent_auto_publish', sanitize_text_field($_POST['auto_publish']));
             update_option('wp_blog_agent_auto_generate_image', sanitize_text_field($_POST['auto_generate_image']));
+            update_option('wp_blog_agent_auto_generate_seo', isset($_POST['auto_generate_seo']) ? sanitize_text_field($_POST['auto_generate_seo']) : 'no');
             
             $frequency = sanitize_text_field($_POST['schedule_frequency']);
             update_option('wp_blog_agent_schedule_frequency', $frequency);
@@ -441,6 +454,12 @@ class WP_Blog_Agent_Admin {
             $this->auto_generate_featured_image($post_id, $parsed['title'], $validated['topic']);
         }
         
+        // Auto-generate RankMath SEO meta if enabled
+        $auto_generate_seo = get_option('wp_blog_agent_auto_generate_seo', 'no');
+        if ($auto_generate_seo === 'yes') {
+            $this->auto_generate_rankmath_seo($post_id);
+        }
+        
         wp_redirect(admin_url('admin.php?page=wp-blog-agent-posts&generated=' . $post_id));
         exit;
     }
@@ -612,6 +631,145 @@ class WP_Blog_Agent_Admin {
                 'error' => $e->getMessage()
             ));
             return false;
+        }
+    }
+    
+    /**
+     * Auto-generate RankMath SEO meta for a post
+     */
+    private function auto_generate_rankmath_seo($post_id) {
+        try {
+            WP_Blog_Agent_Logger::info('Auto-generating RankMath SEO meta', array(
+                'post_id' => $post_id
+            ));
+            
+            $rankmath = new WP_Blog_Agent_RankMath();
+            $results = $rankmath->generate_all_seo_meta($post_id);
+            
+            WP_Blog_Agent_Logger::success('RankMath SEO meta generated', array(
+                'post_id' => $post_id,
+                'description' => $results['description'],
+                'keyword' => $results['keyword']
+            ));
+            
+            return true;
+        } catch (Exception $e) {
+            WP_Blog_Agent_Logger::error('Exception during RankMath SEO generation', array(
+                'post_id' => $post_id,
+                'error' => $e->getMessage()
+            ));
+            return false;
+        }
+    }
+    
+    /**
+     * AJAX handler for generating RankMath SEO meta
+     */
+    public function ajax_generate_seo() {
+        check_ajax_referer('wp_blog_agent_seo_nonce', 'nonce');
+        
+        if (!current_user_can('edit_posts')) {
+            wp_send_json_error(array('message' => 'Unauthorized'));
+            return;
+        }
+        
+        $post_id = intval($_POST['post_id']);
+        
+        if (!$post_id) {
+            wp_send_json_error(array('message' => 'Invalid post ID'));
+            return;
+        }
+        
+        WP_Blog_Agent_Logger::info('Manual SEO generation triggered', array('post_id' => $post_id));
+        
+        $rankmath = new WP_Blog_Agent_RankMath();
+        $results = $rankmath->generate_all_seo_meta($post_id);
+        
+        wp_send_json_success(array(
+            'message' => 'SEO meta generated successfully!',
+            'description' => $results['description'],
+            'keyword' => $results['keyword']
+        ));
+    }
+    
+    /**
+     * AJAX handler for generating post image
+     */
+    public function ajax_generate_post_image() {
+        check_ajax_referer('wp_blog_agent_image_nonce', 'nonce');
+        
+        if (!current_user_can('edit_posts')) {
+            wp_send_json_error(array('message' => 'Unauthorized'));
+            return;
+        }
+        
+        $post_id = intval($_POST['post_id']);
+        
+        if (!$post_id) {
+            wp_send_json_error(array('message' => 'Invalid post ID'));
+            return;
+        }
+        
+        $post = get_post($post_id);
+        
+        if (!$post) {
+            wp_send_json_error(array('message' => 'Post not found'));
+            return;
+        }
+        
+        WP_Blog_Agent_Logger::info('Manual image generation triggered', array('post_id' => $post_id));
+        
+        // Create image prompt based on post title
+        $prompt = sprintf(
+            'Create a professional, eye-catching blog header image for a blog post titled "%s". The image should be visually appealing, modern, and relevant to the topic.',
+            $post->post_title
+        );
+        
+        try {
+            $image_generator = new WP_Blog_Agent_Image_Generator();
+            
+            $params = array(
+                'aspectRatio' => '16:9',
+                'imageSize' => '1K',
+                'sampleCount' => 1,
+                'outputMimeType' => 'image/jpeg',
+                'personGeneration' => 'ALLOW_ALL'
+            );
+            
+            $attachment_id = $image_generator->generate_and_save($prompt, $post_id, $params);
+            
+            if (is_wp_error($attachment_id)) {
+                WP_Blog_Agent_Logger::error('Image generation failed', array(
+                    'post_id' => $post_id,
+                    'error' => $attachment_id->get_error_message()
+                ));
+                wp_send_json_error(array('message' => $attachment_id->get_error_message()));
+                return;
+            }
+            
+            // Store metadata
+            update_post_meta($attachment_id, '_wp_blog_agent_generated_image', true);
+            update_post_meta($attachment_id, '_wp_blog_agent_image_prompt', $prompt);
+            update_post_meta($attachment_id, '_wp_blog_agent_attached_post', $post_id);
+            
+            $image_url = wp_get_attachment_url($attachment_id);
+            
+            WP_Blog_Agent_Logger::success('Image generated successfully', array(
+                'post_id' => $post_id,
+                'attachment_id' => $attachment_id
+            ));
+            
+            wp_send_json_success(array(
+                'message' => 'Featured image generated successfully!',
+                'attachment_id' => $attachment_id,
+                'image_url' => $image_url
+            ));
+        } catch (Exception $e) {
+            WP_Blog_Agent_Logger::error('Exception during image generation', array(
+                'post_id' => $post_id,
+                'error' => $e->getMessage()
+            ));
+            wp_send_json_error(array('message' => $e->getMessage()));
         }
     }
 }

@@ -109,6 +109,78 @@
             $('.notice.is-dismissible').fadeOut();
         }, 5000);
         
+        // Handle Generate SEO button click
+        $(document).on('click', '.wp-blog-agent-generate-seo', function(e) {
+            e.preventDefault();
+            
+            const $button = $(this);
+            const postId = $button.data('post-id');
+            const originalText = $button.text();
+            
+            // Disable button and show loading state
+            $button.prop('disabled', true).text('Generating...');
+            
+            $.ajax({
+                url: wpBlogAgent.ajaxUrl,
+                type: 'POST',
+                data: {
+                    action: 'wp_blog_agent_generate_seo',
+                    post_id: postId,
+                    nonce: wpBlogAgent.seoNonce
+                },
+                success: function(response) {
+                    if (response.success) {
+                        alert('SEO meta generated successfully!\n\nDescription: ' + response.data.description + '\n\nFocus Keyword: ' + response.data.keyword);
+                        $button.prop('disabled', false).text(originalText);
+                    } else {
+                        alert('Error: ' + response.data.message);
+                        $button.prop('disabled', false).text(originalText);
+                    }
+                },
+                error: function(xhr, status, error) {
+                    alert('Error generating SEO meta: ' + error);
+                    $button.prop('disabled', false).text(originalText);
+                }
+            });
+        });
+        
+        // Handle Generate Image button click
+        $(document).on('click', '.wp-blog-agent-generate-image', function(e) {
+            e.preventDefault();
+            
+            const $button = $(this);
+            const postId = $button.data('post-id');
+            const originalText = $button.text();
+            
+            // Disable button and show loading state
+            $button.prop('disabled', true).text('Generating...');
+            
+            $.ajax({
+                url: wpBlogAgent.ajaxUrl,
+                type: 'POST',
+                data: {
+                    action: 'wp_blog_agent_generate_post_image',
+                    post_id: postId,
+                    nonce: wpBlogAgent.imageNonce
+                },
+                success: function(response) {
+                    if (response.success) {
+                        alert('Featured image generated successfully!');
+                        $button.prop('disabled', false).text(originalText);
+                        // Optionally reload the page to show the new image
+                        // location.reload();
+                    } else {
+                        alert('Error: ' + response.data.message);
+                        $button.prop('disabled', false).text(originalText);
+                    }
+                },
+                error: function(xhr, status, error) {
+                    alert('Error generating image: ' + error);
+                    $button.prop('disabled', false).text(originalText);
+                }
+            });
+        });
+        
     });
     
 })(jQuery);
