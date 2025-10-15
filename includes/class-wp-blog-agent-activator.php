@@ -10,10 +10,11 @@ class WP_Blog_Agent_Activator {
     public static function activate() {
         global $wpdb;
         
-        $table_name = $wpdb->prefix . 'blog_agent_topics';
         $charset_collate = $wpdb->get_charset_collate();
         
-        $sql = "CREATE TABLE IF NOT EXISTS $table_name (
+        // Create topics table
+        $topics_table = $wpdb->prefix . 'blog_agent_topics';
+        $topics_sql = "CREATE TABLE IF NOT EXISTS $topics_table (
             id mediumint(9) NOT NULL AUTO_INCREMENT,
             topic varchar(255) NOT NULL,
             keywords text NOT NULL,
@@ -24,8 +25,27 @@ class WP_Blog_Agent_Activator {
             PRIMARY KEY (id)
         ) $charset_collate;";
         
+        // Create queue table
+        $queue_table = $wpdb->prefix . 'blog_agent_queue';
+        $queue_sql = "CREATE TABLE IF NOT EXISTS $queue_table (
+            id mediumint(9) NOT NULL AUTO_INCREMENT,
+            topic_id mediumint(9) DEFAULT NULL,
+            status varchar(20) DEFAULT 'pending',
+            trigger varchar(50) DEFAULT 'manual',
+            post_id bigint(20) DEFAULT NULL,
+            attempts int DEFAULT 0,
+            error_message text DEFAULT NULL,
+            created_at datetime DEFAULT CURRENT_TIMESTAMP,
+            started_at datetime DEFAULT NULL,
+            completed_at datetime DEFAULT NULL,
+            PRIMARY KEY (id),
+            KEY status (status),
+            KEY created_at (created_at)
+        ) $charset_collate;";
+        
         require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
-        dbDelta($sql);
+        dbDelta($topics_sql);
+        dbDelta($queue_sql);
         
         // Set default options
         if (!get_option('wp_blog_agent_ai_provider')) {
