@@ -22,7 +22,7 @@ class WP_Blog_Agent_Activator {
             status varchar(20) DEFAULT 'active',
             created_at datetime DEFAULT CURRENT_TIMESTAMP,
             updated_at datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-            PRIMARY KEY (id)
+            PRIMARY KEY  (id)
         ) $charset_collate;";
         
         // Create queue table
@@ -38,7 +38,7 @@ class WP_Blog_Agent_Activator {
             created_at datetime DEFAULT CURRENT_TIMESTAMP,
             started_at datetime DEFAULT NULL,
             completed_at datetime DEFAULT NULL,
-            PRIMARY KEY (id),
+            PRIMARY KEY  (id),
             KEY status (status),
             KEY created_at (created_at)
         ) $charset_collate;";
