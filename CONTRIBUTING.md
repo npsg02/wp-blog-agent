@@ -231,8 +231,33 @@ To add a new admin page:
 
 ## Release Process
 
-1. Update version in `wp-blog-agent.php`
-2. Update CHANGELOG.md
+### Using the Bump Version Script (Recommended)
+
+Use the `bump-version.sh` script to automate version updates:
+
+```bash
+./bump-version.sh 1.0.2
+```
+
+This will:
+1. Update version in `wp-blog-agent.php` (header and constant)
+2. Add new version section to `CHANGELOG.md`
+3. Provide instructions for next steps
+
+Then:
+1. Review changes: `git diff wp-blog-agent.php CHANGELOG.md`
+2. Update `CHANGELOG.md` with actual changes for this version
+3. Commit: `git add wp-blog-agent.php CHANGELOG.md && git commit -m "Bump version to 1.0.2"`
+4. Tag: `git tag -a v1.0.2 -m "Version 1.0.2"`
+5. Push: `git push && git push origin v1.0.2`
+6. Create GitHub release with notes
+
+### Manual Process
+
+If you prefer to update manually:
+
+1. Update version in `wp-blog-agent.php` (both header comment and constant)
+2. Update CHANGELOG.md with new version section
 3. Tag release: `git tag -a v1.0.1 -m "Version 1.0.1"`
 4. Push tag: `git push origin v1.0.1`
 5. Create GitHub release with notes
