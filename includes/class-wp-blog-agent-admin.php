@@ -141,7 +141,6 @@ class WP_Blog_Agent_Admin {
             update_option('wp_blog_agent_gemini_model', sanitize_text_field($_POST['gemini_model']));
             update_option('wp_blog_agent_gemini_max_tokens', !empty($_POST['gemini_max_tokens']) ? absint($_POST['gemini_max_tokens']) : '');
             update_option('wp_blog_agent_gemini_system_prompt', sanitize_textarea_field($_POST['gemini_system_prompt']));
-            update_option('wp_blog_agent_gemini_image_api_key', sanitize_text_field($_POST['gemini_image_api_key']));
             update_option('wp_blog_agent_ollama_base_url', esc_url_raw($_POST['ollama_base_url']));
             update_option('wp_blog_agent_ollama_model', sanitize_text_field($_POST['ollama_model']));
             update_option('wp_blog_agent_ollama_system_prompt', sanitize_textarea_field($_POST['ollama_system_prompt']));
@@ -223,6 +222,16 @@ class WP_Blog_Agent_Admin {
     public function render_image_gen_page() {
         if (!current_user_can('manage_options')) {
             return;
+        }
+        
+        // Save image generation settings
+        if (isset($_POST['wp_blog_agent_image_settings_nonce']) && 
+            wp_verify_nonce($_POST['wp_blog_agent_image_settings_nonce'], 'wp_blog_agent_image_settings')) {
+            
+            update_option('wp_blog_agent_gemini_image_api_key', sanitize_text_field($_POST['gemini_image_api_key']));
+            
+            wp_redirect(admin_url('admin.php?page=wp-blog-agent-image-gen&settings_saved=1'));
+            exit;
         }
         
         include WP_BLOG_AGENT_PLUGIN_DIR . 'admin/image-gen-page.php';

@@ -111,16 +111,6 @@
             
             <tr>
                 <th scope="row">
-                    <label for="gemini_image_api_key"><?php echo esc_html__('Gemini Image API Key', 'wp-blog-agent'); ?></label>
-                </th>
-                <td>
-                    <input type="password" name="gemini_image_api_key" id="gemini_image_api_key" value="<?php echo esc_attr(get_option('wp_blog_agent_gemini_image_api_key', '')); ?>" class="regular-text" />
-                    <p class="description"><?php echo esc_html__('Enter your Google Gemini API key for image generation (Imagen API). Can be the same as or different from the content generation API key.', 'wp-blog-agent'); ?></p>
-                </td>
-            </tr>
-            
-            <tr>
-                <th scope="row">
                     <label for="ollama_base_url"><?php echo esc_html__('Ollama Base URL', 'wp-blog-agent'); ?></label>
                 </th>
                 <td>
