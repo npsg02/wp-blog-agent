@@ -261,9 +261,40 @@ wp-blog-agent/
 ├── LICENSE
 ├── QUICKSTART.md
 ├── README.md
+├── bump-version.sh
 ├── uninstall.php
 └── wp-blog-agent.php
 ```
+
+### Development Tools
+
+#### Version Bump Script
+
+The `bump-version.sh` script automates the version bump process:
+
+```bash
+./bump-version.sh 1.0.2
+```
+
+This script will:
+1. Update the version in `wp-blog-agent.php` (both header comment and constant)
+2. Create a new version section in `CHANGELOG.md`
+3. Provide instructions for creating git tags
+
+**Usage:**
+```bash
+# Bump to a new version
+./bump-version.sh <new_version>
+
+# Example: bump to version 1.0.3
+./bump-version.sh 1.0.3
+```
+
+After running the script:
+1. Review the changes with `git diff`
+2. Update `CHANGELOG.md` with actual changes for the version
+3. Commit the changes
+4. Create and push a git tag
 
 ## Contributing
 
