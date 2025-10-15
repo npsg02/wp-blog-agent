@@ -48,6 +48,8 @@ class WP_Blog_Agent_Generator {
         // Generate content
         if ($provider === 'gemini') {
             $ai = new WP_Blog_Agent_Gemini();
+        } elseif ($provider === 'ollama') {
+            $ai = new WP_Blog_Agent_Ollama();
         } else {
             $ai = new WP_Blog_Agent_OpenAI();
         }

@@ -6,10 +6,12 @@ class WP_Blog_Agent_OpenAI {
     
     private $api_key;
     private $api_url;
+    private $model;
     
     public function __construct() {
         $this->api_key = get_option('wp_blog_agent_openai_api_key', '');
         $this->api_url = get_option('wp_blog_agent_openai_base_url', 'https://api.openai.com/v1/chat/completions');
+        $this->model = get_option('wp_blog_agent_openai_model', 'gpt-3.5-turbo');
     }
     
     /**
@@ -28,7 +30,7 @@ class WP_Blog_Agent_OpenAI {
                 'Authorization' => 'Bearer ' . $this->api_key,
             ),
             'body' => json_encode(array(
-                'model' => 'gpt-3.5-turbo',
+                'model' => $this->model,
                 'messages' => array(
                     array(
                         'role' => 'system',

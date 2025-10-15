@@ -13,6 +13,7 @@
                     <select name="ai_provider" id="ai_provider" class="regular-text">
                         <option value="openai" <?php selected(get_option('wp_blog_agent_ai_provider', 'openai'), 'openai'); ?>>OpenAI (GPT)</option>
                         <option value="gemini" <?php selected(get_option('wp_blog_agent_ai_provider'), 'gemini'); ?>>Google Gemini</option>
+                        <option value="ollama" <?php selected(get_option('wp_blog_agent_ai_provider'), 'ollama'); ?>>Ollama (Local)</option>
                     </select>
                     <p class="description"><?php echo esc_html__('Choose which AI service to use for generating content.', 'wp-blog-agent'); ?></p>
                 </td>
@@ -40,11 +41,51 @@
             
             <tr>
                 <th scope="row">
+                    <label for="openai_model"><?php echo esc_html__('OpenAI Model', 'wp-blog-agent'); ?></label>
+                </th>
+                <td>
+                    <input type="text" name="openai_model" id="openai_model" value="<?php echo esc_attr(get_option('wp_blog_agent_openai_model', 'gpt-3.5-turbo')); ?>" class="regular-text" />
+                    <p class="description"><?php echo esc_html__('Model to use (e.g., gpt-3.5-turbo, gpt-4, gpt-4-turbo). Default: gpt-3.5-turbo', 'wp-blog-agent'); ?></p>
+                </td>
+            </tr>
+            
+            <tr>
+                <th scope="row">
                     <label for="gemini_api_key"><?php echo esc_html__('Gemini API Key', 'wp-blog-agent'); ?></label>
                 </th>
                 <td>
                     <input type="password" name="gemini_api_key" id="gemini_api_key" value="<?php echo esc_attr(get_option('wp_blog_agent_gemini_api_key', '')); ?>" class="regular-text" />
                     <p class="description"><?php echo esc_html__('Enter your Google Gemini API key. Get one at https://makersuite.google.com/app/apikey', 'wp-blog-agent'); ?></p>
+                </td>
+            </tr>
+            
+            <tr>
+                <th scope="row">
+                    <label for="gemini_model"><?php echo esc_html__('Gemini Model', 'wp-blog-agent'); ?></label>
+                </th>
+                <td>
+                    <input type="text" name="gemini_model" id="gemini_model" value="<?php echo esc_attr(get_option('wp_blog_agent_gemini_model', 'gemini-pro')); ?>" class="regular-text" />
+                    <p class="description"><?php echo esc_html__('Model to use (e.g., gemini-pro, gemini-pro-vision). Default: gemini-pro', 'wp-blog-agent'); ?></p>
+                </td>
+            </tr>
+            
+            <tr>
+                <th scope="row">
+                    <label for="ollama_base_url"><?php echo esc_html__('Ollama Base URL', 'wp-blog-agent'); ?></label>
+                </th>
+                <td>
+                    <input type="text" name="ollama_base_url" id="ollama_base_url" value="<?php echo esc_attr(get_option('wp_blog_agent_ollama_base_url', 'http://localhost:11434/api/generate')); ?>" class="regular-text" />
+                    <p class="description"><?php echo esc_html__('Ollama API endpoint. Default: http://localhost:11434/api/generate', 'wp-blog-agent'); ?></p>
+                </td>
+            </tr>
+            
+            <tr>
+                <th scope="row">
+                    <label for="ollama_model"><?php echo esc_html__('Ollama Model', 'wp-blog-agent'); ?></label>
+                </th>
+                <td>
+                    <input type="text" name="ollama_model" id="ollama_model" value="<?php echo esc_attr(get_option('wp_blog_agent_ollama_model', 'llama2')); ?>" class="regular-text" />
+                    <p class="description"><?php echo esc_html__('Ollama model to use (e.g., llama2, mistral, codellama). Default: llama2', 'wp-blog-agent'); ?></p>
                 </td>
             </tr>
             

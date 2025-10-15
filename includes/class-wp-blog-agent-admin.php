@@ -72,7 +72,11 @@ class WP_Blog_Agent_Admin {
         register_setting('wp_blog_agent_settings', 'wp_blog_agent_ai_provider');
         register_setting('wp_blog_agent_settings', 'wp_blog_agent_openai_api_key');
         register_setting('wp_blog_agent_settings', 'wp_blog_agent_openai_base_url');
+        register_setting('wp_blog_agent_settings', 'wp_blog_agent_openai_model');
         register_setting('wp_blog_agent_settings', 'wp_blog_agent_gemini_api_key');
+        register_setting('wp_blog_agent_settings', 'wp_blog_agent_gemini_model');
+        register_setting('wp_blog_agent_settings', 'wp_blog_agent_ollama_base_url');
+        register_setting('wp_blog_agent_settings', 'wp_blog_agent_ollama_model');
         register_setting('wp_blog_agent_settings', 'wp_blog_agent_schedule_enabled');
         register_setting('wp_blog_agent_settings', 'wp_blog_agent_schedule_frequency');
         register_setting('wp_blog_agent_settings', 'wp_blog_agent_auto_publish');
@@ -105,7 +109,11 @@ class WP_Blog_Agent_Admin {
             update_option('wp_blog_agent_ai_provider', sanitize_text_field($_POST['ai_provider']));
             update_option('wp_blog_agent_openai_api_key', sanitize_text_field($_POST['openai_api_key']));
             update_option('wp_blog_agent_openai_base_url', esc_url_raw($_POST['openai_base_url']));
+            update_option('wp_blog_agent_openai_model', sanitize_text_field($_POST['openai_model']));
             update_option('wp_blog_agent_gemini_api_key', sanitize_text_field($_POST['gemini_api_key']));
+            update_option('wp_blog_agent_gemini_model', sanitize_text_field($_POST['gemini_model']));
+            update_option('wp_blog_agent_ollama_base_url', esc_url_raw($_POST['ollama_base_url']));
+            update_option('wp_blog_agent_ollama_model', sanitize_text_field($_POST['ollama_model']));
             update_option('wp_blog_agent_schedule_enabled', sanitize_text_field($_POST['schedule_enabled']));
             update_option('wp_blog_agent_auto_publish', sanitize_text_field($_POST['auto_publish']));
             
@@ -296,6 +304,8 @@ class WP_Blog_Agent_Admin {
         // Generate content
         if ($provider === 'gemini') {
             $ai = new WP_Blog_Agent_Gemini();
+        } elseif ($provider === 'ollama') {
+            $ai = new WP_Blog_Agent_Ollama();
         } else {
             $ai = new WP_Blog_Agent_OpenAI();
         }
