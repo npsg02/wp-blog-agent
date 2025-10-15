@@ -54,7 +54,7 @@ class WP_Blog_Agent_Validator {
     /**
      * Validate topic data
      */
-    public static function validate_topic($topic, $keywords, $hashtags) {
+    public static function validate_topic($topic, $keywords = '', $hashtags = '') {
         $errors = array();
         
         // Validate topic
@@ -65,19 +65,15 @@ class WP_Blog_Agent_Validator {
             $errors[] = 'Topic is too long (max 255 characters).';
         }
         
-        // Validate keywords
+        // Validate keywords (now optional)
         $keywords = trim(sanitize_textarea_field($keywords));
-        if (empty($keywords)) {
-            $errors[] = 'Keywords cannot be empty.';
-        }
-        
-        $keyword_array = array_map('trim', explode(',', $keywords));
-        $keyword_array = array_filter($keyword_array);
-        
-        if (count($keyword_array) < 1) {
-            $errors[] = 'At least one keyword is required.';
-        } elseif (count($keyword_array) > 50) {
-            $errors[] = 'Too many keywords (max 50).';
+        if (!empty($keywords)) {
+            $keyword_array = array_map('trim', explode(',', $keywords));
+            $keyword_array = array_filter($keyword_array);
+            
+            if (count($keyword_array) > 50) {
+                $errors[] = 'Too many keywords (max 50).';
+            }
         }
         
         // Validate hashtags (optional)
