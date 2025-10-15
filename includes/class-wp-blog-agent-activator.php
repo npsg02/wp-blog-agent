@@ -60,6 +60,9 @@ class WP_Blog_Agent_Activator {
         if (!get_option('wp_blog_agent_auto_publish')) {
             add_option('wp_blog_agent_auto_publish', 'yes');
         }
+        if (!get_option('wp_blog_agent_auto_generate_image')) {
+            add_option('wp_blog_agent_auto_generate_image', 'no');
+        }
         
         // Schedule cron event if not already scheduled
         if (!wp_next_scheduled('wp_blog_agent_generate_post')) {

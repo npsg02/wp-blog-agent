@@ -105,6 +105,7 @@ class WP_Blog_Agent_Admin {
         register_setting('wp_blog_agent_settings', 'wp_blog_agent_schedule_enabled');
         register_setting('wp_blog_agent_settings', 'wp_blog_agent_schedule_frequency');
         register_setting('wp_blog_agent_settings', 'wp_blog_agent_auto_publish');
+        register_setting('wp_blog_agent_settings', 'wp_blog_agent_auto_generate_image');
     }
     
     /**
@@ -146,6 +147,7 @@ class WP_Blog_Agent_Admin {
             update_option('wp_blog_agent_ollama_system_prompt', sanitize_textarea_field($_POST['ollama_system_prompt']));
             update_option('wp_blog_agent_schedule_enabled', sanitize_text_field($_POST['schedule_enabled']));
             update_option('wp_blog_agent_auto_publish', sanitize_text_field($_POST['auto_publish']));
+            update_option('wp_blog_agent_auto_generate_image', sanitize_text_field($_POST['auto_generate_image']));
             
             $frequency = sanitize_text_field($_POST['schedule_frequency']);
             update_option('wp_blog_agent_schedule_frequency', $frequency);
@@ -431,6 +433,12 @@ class WP_Blog_Agent_Admin {
         update_post_meta($post_id, '_wp_blog_agent_hashtags', implode(' ', $hashtags));
         update_post_meta($post_id, '_wp_blog_agent_provider', $provider);
         
+        // Auto-generate featured image if enabled
+        $auto_generate_image = get_option('wp_blog_agent_auto_generate_image', 'no');
+        if ($auto_generate_image === 'yes') {
+            $this->auto_generate_featured_image($post_id, $parsed['title'], $validated['topic']);
+        }
+        
         wp_redirect(admin_url('admin.php?page=wp-blog-agent-posts&generated=' . $post_id));
         exit;
     }
@@ -542,5 +550,66 @@ class WP_Blog_Agent_Admin {
         
         wp_redirect(admin_url('admin.php?page=wp-blog-agent-image-gen&generated=' . $attachment_id));
         exit;
+    }
+    
+    /**
+     * Auto-generate and set featured image for a post
+     */
+    private function auto_generate_featured_image($post_id, $title, $topic) {
+        try {
+            // Create image prompt based on post title and topic
+            $prompt = sprintf(
+                'Create a professional, eye-catching blog header image for a blog post titled "%s" about %s. The image should be visually appealing, modern, and relevant to the topic.',
+                $title,
+                $topic
+            );
+            
+            WP_Blog_Agent_Logger::info('Auto-generating featured image', array(
+                'post_id' => $post_id,
+                'prompt' => substr($prompt, 0, 100)
+            ));
+            
+            // Initialize image generator
+            $image_generator = new WP_Blog_Agent_Image_Generator();
+            
+            // Set parameters for featured image
+            $params = array(
+                'aspectRatio' => '16:9', // Best for blog headers
+                'imageSize' => '1K',
+                'sampleCount' => 1,
+                'outputMimeType' => 'image/jpeg',
+                'personGeneration' => 'ALLOW_ALL'
+            );
+            
+            // Generate and save image
+            $attachment_id = $image_generator->generate_and_save($prompt, $post_id, $params);
+            
+            if (is_wp_error($attachment_id)) {
+                WP_Blog_Agent_Logger::error('Failed to auto-generate featured image', array(
+                    'post_id' => $post_id,
+                    'error' => $attachment_id->get_error_message()
+                ));
+                return false;
+            }
+            
+            // Store metadata
+            update_post_meta($attachment_id, '_wp_blog_agent_generated_image', true);
+            update_post_meta($attachment_id, '_wp_blog_agent_image_prompt', $prompt);
+            update_post_meta($attachment_id, '_wp_blog_agent_attached_post', $post_id);
+            update_post_meta($attachment_id, '_wp_blog_agent_auto_generated', true);
+            
+            WP_Blog_Agent_Logger::success('Featured image auto-generated successfully', array(
+                'post_id' => $post_id,
+                'attachment_id' => $attachment_id
+            ));
+            
+            return $attachment_id;
+        } catch (Exception $e) {
+            WP_Blog_Agent_Logger::error('Exception during auto-image generation', array(
+                'post_id' => $post_id,
+                'error' => $e->getMessage()
+            ));
+            return false;
+        }
     }
 }

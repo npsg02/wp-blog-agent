@@ -179,6 +179,19 @@
                     <p class="description"><?php echo esc_html__('Automatically publish generated posts or save as drafts for review.', 'wp-blog-agent'); ?></p>
                 </td>
             </tr>
+            
+            <tr>
+                <th scope="row">
+                    <label for="auto_generate_image"><?php echo esc_html__('Auto Generate Featured Image', 'wp-blog-agent'); ?></label>
+                </th>
+                <td>
+                    <select name="auto_generate_image" id="auto_generate_image" class="regular-text">
+                        <option value="yes" <?php selected(get_option('wp_blog_agent_auto_generate_image', 'no'), 'yes'); ?>><?php echo esc_html__('Yes', 'wp-blog-agent'); ?></option>
+                        <option value="no" <?php selected(get_option('wp_blog_agent_auto_generate_image', 'no'), 'no'); ?>><?php echo esc_html__('No', 'wp-blog-agent'); ?></option>
+                    </select>
+                    <p class="description"><?php echo esc_html__('Automatically generate and set featured image for generated posts using Gemini Imagen API.', 'wp-blog-agent'); ?></p>
+                </td>
+            </tr>
         </table>
         
         <?php submit_button(__('Save Settings', 'wp-blog-agent')); ?>
