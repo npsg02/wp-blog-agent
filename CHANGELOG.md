@@ -43,6 +43,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Quick manual topic generation without saving to database
 - Enhanced Topics page with manual generation form
 - Support for one-off content generation
+- Optional keywords and hashtags - can now generate posts from title only
+- Ollama (local AI) support for self-hosted models
+
+### Improved
+- Enhanced error handling for OpenAI API with detailed error messages
+- Enhanced error handling for Gemini API with better response validation
+- Enhanced error handling for Ollama API for consistency
+- API request and response logging moved from debug to info level for better visibility
+- Better validation of API responses with comprehensive checks
+- Support for different OpenAI-compatible API response formats
+- More descriptive error messages for troubleshooting API issues
+
+### Fixed
+- Invalid response from OpenAI API now properly handled with clear error messages
+- Better handling of empty or malformed API responses
+- Improved HTTP status code validation for all AI providers
 
 ### Planned Features
 - Multi-language support (i18n/l10n)

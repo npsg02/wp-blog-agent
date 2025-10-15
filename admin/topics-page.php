@@ -35,11 +35,11 @@
                     
                     <tr>
                         <th scope="row">
-                            <label for="manual_keywords"><?php echo esc_html__('Keywords', 'wp-blog-agent'); ?> *</label>
+                            <label for="manual_keywords"><?php echo esc_html__('Keywords', 'wp-blog-agent'); ?></label>
                         </th>
                         <td>
-                            <textarea name="manual_keywords" id="manual_keywords" class="large-text" rows="2" required></textarea>
-                            <p class="description"><?php echo esc_html__('Comma-separated keywords for SEO optimization.', 'wp-blog-agent'); ?></p>
+                            <textarea name="manual_keywords" id="manual_keywords" class="large-text" rows="2"></textarea>
+                            <p class="description"><?php echo esc_html__('Comma-separated keywords for SEO optimization (optional).', 'wp-blog-agent'); ?></p>
                         </td>
                     </tr>
                     
@@ -80,11 +80,11 @@
                     
                     <tr>
                         <th scope="row">
-                            <label for="keywords"><?php echo esc_html__('Keywords', 'wp-blog-agent'); ?> *</label>
+                            <label for="keywords"><?php echo esc_html__('Keywords', 'wp-blog-agent'); ?></label>
                         </th>
                         <td>
-                            <textarea name="keywords" id="keywords" class="large-text" rows="3" required></textarea>
-                            <p class="description"><?php echo esc_html__('Comma-separated keywords for SEO optimization. Example: wordpress, blogging, content marketing', 'wp-blog-agent'); ?></p>
+                            <textarea name="keywords" id="keywords" class="large-text" rows="3"></textarea>
+                            <p class="description"><?php echo esc_html__('Comma-separated keywords for SEO optimization (optional). Example: wordpress, blogging, content marketing', 'wp-blog-agent'); ?></p>
                         </td>
                     </tr>
                     

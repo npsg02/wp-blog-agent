@@ -4,14 +4,17 @@ A powerful WordPress plugin that automates blog post generation using OpenAI GPT
 
 ## Features
 
-- **AI-Powered Content Generation**: Choose between OpenAI (GPT) or Google Gemini for content creation
-- **Custom OpenAI Base URL**: Configure custom API endpoints for OpenAI-compatible services
+- **AI-Powered Content Generation**: Choose between OpenAI (GPT), Google Gemini, or Ollama (local) for content creation
+- **Custom OpenAI Base URL**: Configure custom API endpoints for OpenAI-compatible services (supports any OpenAI-compatible API)
 - **Quick Manual Generation**: Generate posts immediately without saving topics to the database
-- **SEO Optimization**: Automatically include keywords with proper density for search engine optimization
-- **Hashtag Support**: Add relevant hashtags to boost social media visibility
+- **Flexible Content Generation**: Generate posts from title only, or optionally include keywords and hashtags
+- **SEO Optimization**: Automatically include keywords with proper density for search engine optimization (optional)
+- **Hashtag Support**: Add relevant hashtags to boost social media visibility (optional)
 - **Topic Management**: Create and manage multiple topics for varied content
 - **Scheduled Publishing**: Automate post generation with flexible scheduling options (hourly, twice daily, daily, weekly)
 - **Auto-Publish**: Automatically publish generated posts or save as drafts for review
+- **Enhanced API Logging**: Comprehensive logging of API requests and responses for debugging and monitoring
+- **Robust Error Handling**: Better error messages and handling for invalid API responses
 - **Activity Logging**: Track all plugin activities with detailed logs
 - **Input Validation**: Comprehensive validation for all user inputs
 - **Security First**: Nonce verification, capability checks, and sanitized inputs
@@ -67,18 +70,20 @@ Navigate to **Blog Agent** → **Settings** to configure:
 Navigate to **Blog Agent** → **Topics** to:
 
 - **Quick Generate (Manual Topic)**: Generate a post immediately without saving the topic to the database
-  - Enter topic, keywords, and hashtags
+  - Enter topic (required)
+  - Optionally add keywords for SEO optimization
+  - Optionally add hashtags for social media visibility
   - Click "Generate Now" for instant content creation
   - Perfect for one-off posts or testing
-- **Add Topics**: Create new topics with keywords and hashtags for scheduled generation
+- **Add Topics**: Create new topics with optional keywords and hashtags for scheduled generation
 - **View Topics**: See all configured topics
 - **Generate**: Manually generate a post for any specific topic
 - **Delete**: Remove topics you no longer need
 
 **Example Topic Configuration:**
-- **Topic**: "WordPress SEO Best Practices"
-- **Keywords**: wordpress, SEO, search engine optimization, ranking, plugins
-- **Hashtags**: #WordPress, #SEO, #WebDev, #BlogTips
+- **Topic**: "WordPress SEO Best Practices" (required)
+- **Keywords**: wordpress, SEO, search engine optimization, ranking, plugins (optional)
+- **Hashtags**: #WordPress, #SEO, #WebDev, #BlogTips (optional)
 
 ### 4. View Generated Posts
 
