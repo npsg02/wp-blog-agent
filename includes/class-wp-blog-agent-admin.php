@@ -238,16 +238,6 @@ class WP_Blog_Agent_Admin {
             return;
         }
         
-        // Save image generation settings
-        if (isset($_POST['wp_blog_agent_image_settings_nonce']) && 
-            wp_verify_nonce($_POST['wp_blog_agent_image_settings_nonce'], 'wp_blog_agent_image_settings')) {
-            
-            update_option('wp_blog_agent_gemini_image_api_key', sanitize_text_field($_POST['gemini_image_api_key']));
-            
-            wp_redirect(admin_url('admin.php?page=wp-blog-agent-image-gen&settings_saved=1'));
-            exit;
-        }
-        
         include WP_BLOG_AGENT_PLUGIN_DIR . 'admin/image-gen-page.php';
     }
     
