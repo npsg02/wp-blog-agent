@@ -45,6 +45,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Support for one-off content generation
 - Optional keywords and hashtags - can now generate posts from title only
 - Ollama (local AI) support for self-hosted models
+- **Image Generation feature using Gemini Imagen API**
+- **New admin page for AI image generation**
+- **Upload generated images to WordPress media library**
+- **Attach images to blog posts with featured image support**
+- **Configurable image parameters (aspect ratio, size, resolution)**
+- **Image generation metadata tracking**
+- **Recently generated images gallery**
 
 ### Improved
 - Enhanced error handling for OpenAI API with detailed error messages
