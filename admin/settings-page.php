@@ -30,6 +30,16 @@
             
             <tr>
                 <th scope="row">
+                    <label for="openai_base_url"><?php echo esc_html__('OpenAI Base URL', 'wp-blog-agent'); ?></label>
+                </th>
+                <td>
+                    <input type="text" name="openai_base_url" id="openai_base_url" value="<?php echo esc_attr(get_option('wp_blog_agent_openai_base_url', 'https://api.openai.com/v1/chat/completions')); ?>" class="regular-text" />
+                    <p class="description"><?php echo esc_html__('Custom OpenAI API base URL. Default: https://api.openai.com/v1/chat/completions (useful for OpenAI-compatible APIs)', 'wp-blog-agent'); ?></p>
+                </td>
+            </tr>
+            
+            <tr>
+                <th scope="row">
                     <label for="gemini_api_key"><?php echo esc_html__('Gemini API Key', 'wp-blog-agent'); ?></label>
                 </th>
                 <td>

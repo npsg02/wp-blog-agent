@@ -16,7 +16,53 @@
     
     <div class="wp-blog-agent-topics-container">
         <div class="wp-blog-agent-add-topic">
+            <h2><?php echo esc_html__('Quick Generate (Manual Topic)', 'wp-blog-agent'); ?></h2>
+            <p><?php echo esc_html__('Generate a blog post immediately without saving the topic to the database.', 'wp-blog-agent'); ?></p>
+            <form method="post" action="<?php echo admin_url('admin-post.php'); ?>">
+                <input type="hidden" name="action" value="wp_blog_agent_generate_manual">
+                <?php wp_nonce_field('wp_blog_agent_generate_manual'); ?>
+                
+                <table class="form-table">
+                    <tr>
+                        <th scope="row">
+                            <label for="manual_topic"><?php echo esc_html__('Topic', 'wp-blog-agent'); ?> *</label>
+                        </th>
+                        <td>
+                            <input type="text" name="manual_topic" id="manual_topic" class="regular-text" required>
+                            <p class="description"><?php echo esc_html__('Main topic or subject for the blog post.', 'wp-blog-agent'); ?></p>
+                        </td>
+                    </tr>
+                    
+                    <tr>
+                        <th scope="row">
+                            <label for="manual_keywords"><?php echo esc_html__('Keywords', 'wp-blog-agent'); ?> *</label>
+                        </th>
+                        <td>
+                            <textarea name="manual_keywords" id="manual_keywords" class="large-text" rows="2" required></textarea>
+                            <p class="description"><?php echo esc_html__('Comma-separated keywords for SEO optimization.', 'wp-blog-agent'); ?></p>
+                        </td>
+                    </tr>
+                    
+                    <tr>
+                        <th scope="row">
+                            <label for="manual_hashtags"><?php echo esc_html__('Hashtags', 'wp-blog-agent'); ?></label>
+                        </th>
+                        <td>
+                            <textarea name="manual_hashtags" id="manual_hashtags" class="large-text" rows="2"></textarea>
+                            <p class="description"><?php echo esc_html__('Comma-separated hashtags (optional).', 'wp-blog-agent'); ?></p>
+                        </td>
+                    </tr>
+                </table>
+                
+                <?php submit_button(__('Generate Now', 'wp-blog-agent'), 'primary', 'submit', true); ?>
+            </form>
+        </div>
+        
+        <hr>
+        
+        <div class="wp-blog-agent-add-topic">
             <h2><?php echo esc_html__('Add New Topic', 'wp-blog-agent'); ?></h2>
+            <p><?php echo esc_html__('Save a topic for scheduled or future generation.', 'wp-blog-agent'); ?></p>
             <form method="post" action="<?php echo admin_url('admin-post.php'); ?>">
                 <input type="hidden" name="action" value="wp_blog_agent_add_topic">
                 <?php wp_nonce_field('wp_blog_agent_add_topic'); ?>

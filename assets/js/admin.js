@@ -11,9 +11,11 @@
             
             if (provider === 'openai') {
                 $('#openai_api_key').closest('tr').show();
+                $('#openai_base_url').closest('tr').show();
                 $('#gemini_api_key').closest('tr').hide();
             } else if (provider === 'gemini') {
                 $('#openai_api_key').closest('tr').hide();
+                $('#openai_base_url').closest('tr').hide();
                 $('#gemini_api_key').closest('tr').show();
             }
         }).trigger('change');

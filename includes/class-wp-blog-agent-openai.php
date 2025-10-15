@@ -5,10 +5,11 @@
 class WP_Blog_Agent_OpenAI {
     
     private $api_key;
-    private $api_url = 'https://api.openai.com/v1/chat/completions';
+    private $api_url;
     
     public function __construct() {
         $this->api_key = get_option('wp_blog_agent_openai_api_key', '');
+        $this->api_url = get_option('wp_blog_agent_openai_base_url', 'https://api.openai.com/v1/chat/completions');
     }
     
     /**
