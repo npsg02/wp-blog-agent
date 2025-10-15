@@ -313,12 +313,8 @@ class WP_Blog_Agent_Admin {
         
         WP_Blog_Agent_Logger::info('Manual content generated successfully', array('provider' => $provider));
         
-        // Use the generator's parse method to extract title and content
-        $generator = new WP_Blog_Agent_Generator();
-        $reflection = new ReflectionClass($generator);
-        $method = $reflection->getMethod('parse_content');
-        $method->setAccessible(true);
-        $parsed = $method->invoke($generator, $content);
+        // Parse content to extract title and body
+        $parsed = $this->parse_generated_content($content);
         
         // Determine post status
         $auto_publish = get_option('wp_blog_agent_auto_publish', 'yes');
@@ -369,5 +365,28 @@ class WP_Blog_Agent_Admin {
             $text = substr($text, 0, 147) . '...';
         }
         return $text;
+    }
+    
+    /**
+     * Parse content to extract title and body
+     */
+    private function parse_generated_content($content) {
+        // Try to extract title from h1 tag
+        if (preg_match('/<h1[^>]*>(.*?)<\/h1>/is', $content, $matches)) {
+            $title = strip_tags($matches[1]);
+            $content = preg_replace('/<h1[^>]*>.*?<\/h1>/is', '', $content, 1);
+        } else {
+            // Try to get first line as title
+            $lines = explode("\n", strip_tags($content));
+            $title = trim($lines[0]);
+            if (strlen($title) > 100) {
+                $title = substr($title, 0, 97) . '...';
+            }
+        }
+        
+        return array(
+            'title' => $title ?: 'Untitled Post',
+            'content' => trim($content)
+        );
     }
 }
