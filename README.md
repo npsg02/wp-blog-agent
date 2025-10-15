@@ -5,6 +5,7 @@ A powerful WordPress plugin that automates blog post generation using OpenAI GPT
 ## Features
 
 - **AI-Powered Content Generation**: Choose between OpenAI (GPT), Google Gemini, or Ollama (local) for content creation
+- **AI Image Generation**: Generate images using Gemini Imagen API and save to WordPress media library
 - **Custom OpenAI Base URL**: Configure custom API endpoints for OpenAI-compatible services (supports any OpenAI-compatible API)
 - **Quick Manual Generation**: Generate posts immediately without saving topics to the database
 - **Flexible Content Generation**: Generate posts from title only, or optionally include keywords and hashtags
@@ -104,6 +105,18 @@ Navigate to **Blog Agent** → **Logs** to:
 - Debug issues
 - Clear old logs
 
+### 6. Generate Images
+
+Navigate to **Blog Agent** → **Image Generation** to:
+
+- Generate images using Gemini Imagen API
+- Save images directly to WordPress media library
+- Attach images to specific blog posts
+- Set images as featured images automatically
+- Configure aspect ratio (16:9, 4:3, 1:1, 3:4)
+- Choose image resolution (1K, 2K, 4K)
+- View recently generated images
+
 ## Usage
 
 ### Quick Manual Generation
@@ -128,6 +141,19 @@ Navigate to **Blog Agent** → **Logs** to:
 2. Find the topic you want to generate content for
 3. Click the **Generate** button next to that topic
 4. A post will be generated using that specific topic
+
+### Image Generation for Blog Posts
+
+1. Go to **Blog Agent** → **Image Generation**
+2. Enter a detailed prompt describing the image you want (e.g., "Create image visualization docker work")
+3. Optionally specify a post ID to attach the image to
+4. Choose aspect ratio (16:9 recommended for blog posts)
+5. Select image size (1K for faster generation, 4K for high quality)
+6. Check "Set as Featured Image" if you want it automatically set as post's featured image
+7. Click **Generate Image**
+8. The image will be saved to your media library and optionally attached to the post
+
+**Note**: Image generation uses the same Gemini API key configured in Settings.
 
 ## How It Works
 
