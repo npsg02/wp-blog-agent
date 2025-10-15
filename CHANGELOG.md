@@ -52,6 +52,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Configurable image parameters (aspect ratio, size, resolution)**
 - **Image generation metadata tracking**
 - **Recently generated images gallery**
+- **Task Queue System for asynchronous post generation**
+- **Queue management page with statistics and monitoring**
+- **Automatic retry logic for failed generation tasks (up to 3 attempts)**
+- **Background processing via WordPress Cron**
+- **Queue cleanup functionality for old completed/failed tasks**
 
 ### Improved
 - Enhanced error handling for OpenAI API with detailed error messages
@@ -62,11 +67,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Support for different OpenAI-compatible API response formats
 - More descriptive error messages for troubleshooting API issues
 - **Updated Gemini Imagen model to version 4.0 (imagen-4.0-generate-001) for improved image quality**
+- **Post generation now uses asynchronous queue system for better reliability**
+- **Non-blocking generation requests improve UI responsiveness**
 
 ### Fixed
 - Invalid response from OpenAI API now properly handled with clear error messages
 - Better handling of empty or malformed API responses
 - Improved HTTP status code validation for all AI providers
+- **Generation tasks won't block WordPress admin interface**
 
 ### Planned Features
 - Multi-language support (i18n/l10n)
