@@ -5,6 +5,7 @@ A powerful WordPress plugin that automates blog post generation using OpenAI GPT
 ## Features
 
 - **AI-Powered Content Generation**: Choose between OpenAI (GPT), Google Gemini, or Ollama (local) for content creation
+- **Task Queue System**: Asynchronous generation with automatic retry on failure (up to 3 attempts)
 - **AI Image Generation**: Generate images using Gemini Imagen API and save to WordPress media library
 - **Custom OpenAI Base URL**: Configure custom API endpoints for OpenAI-compatible services (supports any OpenAI-compatible API)
 - **Quick Manual Generation**: Generate posts immediately without saving topics to the database
@@ -14,6 +15,7 @@ A powerful WordPress plugin that automates blog post generation using OpenAI GPT
 - **Topic Management**: Create and manage multiple topics for varied content
 - **Scheduled Publishing**: Automate post generation with flexible scheduling options (hourly, twice daily, daily, weekly)
 - **Auto-Publish**: Automatically publish generated posts or save as drafts for review
+- **Queue Monitoring**: View queue status, statistics, and task history
 - **Enhanced API Logging**: Comprehensive logging of API requests and responses for debugging and monitoring
 - **Robust Error Handling**: Better error messages and handling for invalid API responses
 - **Activity Logging**: Track all plugin activities with detailed logs
@@ -95,7 +97,17 @@ Navigate to **Blog Agent** → **Generated Posts** to:
 - See which AI provider was used
 - Edit or view posts directly
 
-### 5. Monitor Activity
+### 5. Monitor Queue
+
+Navigate to **Blog Agent** → **Queue** to:
+
+- View queue statistics (pending, processing, completed, failed)
+- Monitor real-time task processing
+- See task details and history
+- View error messages for failed tasks
+- Cleanup old completed/failed tasks
+
+### 6. Monitor Activity
 
 Navigate to **Blog Agent** → **Logs** to:
 
@@ -105,7 +117,7 @@ Navigate to **Blog Agent** → **Logs** to:
 - Debug issues
 - Clear old logs
 
-### 6. Generate Images
+### 7. Generate Images
 
 Navigate to **Blog Agent** → **Image Generation** to:
 
@@ -125,7 +137,8 @@ Navigate to **Blog Agent** → **Image Generation** to:
 2. Find the "Quick Generate (Manual Topic)" section at the top
 3. Enter your topic, keywords, and hashtags
 4. Click **Generate Now**
-5. The post will be generated and created immediately without saving the topic
+5. The task will be added to the queue and processed asynchronously
+6. Check **Blog Agent** → **Queue** to monitor progress
 
 ### Scheduled Automatic Generation
 
@@ -133,14 +146,16 @@ Navigate to **Blog Agent** → **Image Generation** to:
 2. Set **Enable Scheduling** to "Yes"
 3. Choose your preferred **Schedule Frequency**
 4. Save settings
-5. Posts will be automatically generated based on your schedule using random active topics
+5. Posts will be automatically added to the queue based on your schedule
+6. The queue processor will generate them asynchronously
 
 ### Topic-Specific Generation
 
 1. Go to **Blog Agent** → **Topics**
 2. Find the topic you want to generate content for
 3. Click the **Generate** button next to that topic
-4. A post will be generated using that specific topic
+4. A task will be added to the queue for that specific topic
+5. Monitor progress in **Blog Agent** → **Queue**
 
 ### Image Generation for Blog Posts
 
@@ -157,12 +172,15 @@ Navigate to **Blog Agent** → **Image Generation** to:
 
 ## How It Works
 
-1. **Topic Selection**: The plugin selects a topic from your configured list
-2. **Prompt Building**: Creates an optimized prompt with the topic, keywords, and hashtags
-3. **AI Generation**: Sends the prompt to your selected AI provider (OpenAI or Gemini)
-4. **Content Processing**: Parses the response to extract title and content
-5. **Post Creation**: Creates a WordPress post with the generated content
-6. **Publishing**: Publishes the post or saves as draft based on your settings
+1. **Task Enqueueing**: When triggered (manually or scheduled), a task is added to the queue
+2. **Queue Processing**: WordPress cron processes the queue asynchronously
+3. **Topic Selection**: The plugin selects a topic from your configured list (or uses specified topic)
+4. **Prompt Building**: Creates an optimized prompt with the topic, keywords, and hashtags
+5. **AI Generation**: Sends the prompt to your selected AI provider (OpenAI, Gemini, or Ollama)
+6. **Content Processing**: Parses the response to extract title and content
+7. **Post Creation**: Creates a WordPress post with the generated content
+8. **Publishing**: Publishes the post or saves as draft based on your settings
+9. **Queue Update**: Marks task as completed or failed (with retry logic)
 
 ## Requirements
 
@@ -173,9 +191,10 @@ Navigate to **Blog Agent** → **Image Generation** to:
 
 ## Database Tables
 
-The plugin creates the following custom table:
+The plugin creates the following custom tables:
 
 - `wp_blog_agent_topics`: Stores topics, keywords, and hashtags
+- `wp_blog_agent_queue`: Stores generation task queue with status tracking
 
 ## File Storage
 
@@ -187,7 +206,8 @@ The plugin creates log files in:
 
 The plugin uses WordPress Cron to schedule automated generation:
 
-- Hook: `wp_blog_agent_generate_post`
+- Hook: `wp_blog_agent_generate_post` - Adds tasks to queue based on schedule
+- Hook: `wp_blog_agent_process_queue` - Processes queued tasks asynchronously
 - Frequencies: hourly, twicedaily, daily, weekly
 
 ## Security

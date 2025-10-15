@@ -16,7 +16,7 @@
 #### WP_Blog_Agent_Activator
 - **Purpose**: Handles plugin activation
 - **Responsibilities**:
-  - Creates database tables (blog_agent_topics)
+  - Creates database tables (blog_agent_topics, blog_agent_queue)
   - Sets default options
   - Schedules initial cron events
 
@@ -74,8 +74,19 @@
 - **Responsibilities**:
   - Hooks into WordPress Cron
   - Defines custom cron schedules
-  - Triggers scheduled post generation
+  - Triggers scheduled post generation (via queue)
   - Updates cron schedules
+  - Processes queue tasks
+
+#### WP_Blog_Agent_Queue
+- **Purpose**: Task queue management
+- **Responsibilities**:
+  - Enqueues generation tasks
+  - Processes pending tasks
+  - Manages task status (pending, processing, completed, failed)
+  - Implements retry logic (up to 3 attempts)
+  - Provides queue statistics
+  - Cleanup old completed/failed tasks
 
 ## Data Flow
 
@@ -104,6 +115,24 @@
                         ▼
 ┌─────────────────────────────────────────────────────────────┐
 │          Trigger (Manual or Scheduled via WP-Cron)          │
+└───────────────────────┬─────────────────────────────────────┘
+                        │
+                        ▼
+┌─────────────────────────────────────────────────────────────┐
+│              WP_Blog_Agent_Queue                             │
+│                                                              │
+│  1. Task added to queue (blog_agent_queue table)            │
+│  2. Status: pending                                          │
+│  3. Schedule immediate processing event                      │
+└───────────────────────┬─────────────────────────────────────┘
+                        │
+                        ▼
+┌─────────────────────────────────────────────────────────────┐
+│          wp_blog_agent_process_queue (WP-Cron)              │
+│                                                              │
+│  1. Get next pending task                                    │
+│  2. Mark as processing                                       │
+│  3. Call WP_Blog_Agent_Generator                            │
 └───────────────────────┬─────────────────────────────────────┘
                         │
                         ▼
@@ -183,13 +212,21 @@
 - Quick links to edit or view posts
 - Shows which AI provider was used
 
-### 4. Logs Page (wp-blog-agent-logs)
+### 4. Queue Page (wp-blog-agent-queue)
+- View queue statistics (pending, processing, completed, failed)
+- List recent queue items with status
+- See task details including topic, trigger, attempts
+- View error messages for failed tasks
+- Cleanup old completed/failed tasks
+- Monitor background processing
+
+### 5. Logs Page (wp-blog-agent-logs)
 - View plugin activity logs
 - Filter by log level (info, warning, error)
 - Debug generation issues
 - Clear old logs
 
-### 5. Image Generation Page (wp-blog-agent-image-gen)
+### 6. Image Generation Page (wp-blog-agent-image-gen)
 - Generate images using Gemini Imagen API
 - Configure image parameters (aspect ratio, size)
 - Attach images to specific posts
@@ -213,6 +250,32 @@ CREATE TABLE wp_blog_agent_topics (
     PRIMARY KEY (id)
 );
 ```
+
+### Table: wp_blog_agent_queue
+
+```sql
+CREATE TABLE wp_blog_agent_queue (
+    id mediumint(9) NOT NULL AUTO_INCREMENT,
+    topic_id mediumint(9) DEFAULT NULL,
+    status varchar(20) DEFAULT 'pending',
+    trigger varchar(50) DEFAULT 'manual',
+    post_id bigint(20) DEFAULT NULL,
+    attempts int DEFAULT 0,
+    error_message text DEFAULT NULL,
+    created_at datetime DEFAULT CURRENT_TIMESTAMP,
+    started_at datetime DEFAULT NULL,
+    completed_at datetime DEFAULT NULL,
+    PRIMARY KEY (id),
+    KEY status (status),
+    KEY created_at (created_at)
+);
+```
+
+#### Queue Status Values
+- `pending`: Task is waiting to be processed
+- `processing`: Task is currently being processed
+- `completed`: Task completed successfully
+- `failed`: Task failed after maximum retry attempts (3)
 
 ### Post Metadata
 
@@ -238,7 +301,14 @@ The plugin uses the following options:
 ### Hook: wp_blog_agent_generate_post
 - Triggered based on configured frequency
 - Calls WP_Blog_Agent_Scheduler::scheduled_generation()
-- Generates one post per execution
+- Enqueues a generation task instead of executing directly
+
+### Hook: wp_blog_agent_process_queue
+- Triggered when tasks are added to queue
+- Calls WP_Blog_Agent_Queue::process_queue()
+- Processes one task at a time
+- Automatically schedules next task if more are pending
+- Implements retry logic (up to 3 attempts with 5-minute delay)
 
 ### Custom Schedules
 - **hourly**: Every 3600 seconds (1 hour)
