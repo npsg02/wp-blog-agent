@@ -5,8 +5,10 @@ A powerful WordPress plugin that automates blog post generation using OpenAI GPT
 ## Features
 
 - **AI-Powered Content Generation**: Choose between OpenAI (GPT), Google Gemini, or Ollama (local) for content creation
+- **RankMath SEO Integration**: Automatically generate SEO meta descriptions and focus keywords for RankMath SEO plugin
 - **Task Queue System**: Asynchronous generation with automatic retry on failure (up to 3 attempts)
 - **AI Image Generation**: Generate images using Gemini Imagen API and save to WordPress media library
+- **Manual SEO & Image Generation**: Generate SEO metadata and featured images for existing posts with one click
 - **Custom OpenAI Base URL**: Configure custom API endpoints for OpenAI-compatible services (supports any OpenAI-compatible API)
 - **Quick Manual Generation**: Generate posts immediately without saving topics to the database
 - **Flexible Content Generation**: Generate posts from title only, or optionally include keywords and hashtags
@@ -96,8 +98,28 @@ Navigate to **Blog Agent** → **Generated Posts** to:
 - Check post status (published, draft, etc.)
 - See which AI provider was used
 - Edit or view posts directly
+- **Generate SEO metadata** for posts with one click
+- **Generate featured images** for posts with AI
 
-### 5. Monitor Queue
+### 5. RankMath SEO Integration
+
+The plugin includes automatic SEO optimization for the RankMath SEO plugin:
+
+#### Auto-Generate SEO Metadata
+- Navigate to **Blog Agent** → **Settings** → **General Settings**
+- Enable **Auto Generate RankMath SEO**
+- All newly generated posts will automatically have:
+  - **SEO Meta Description**: AI-generated 155-160 character description
+  - **Focus Keyword**: Primary keyword (1-4 words) identified from content
+
+#### Manual SEO Generation
+- Go to **Blog Agent** → **Generated Posts**
+- Click **Generate SEO** button on any post
+- SEO metadata will be generated and saved instantly
+
+See [RANKMATH_SEO_FEATURE.md](RANKMATH_SEO_FEATURE.md) for detailed documentation.
+
+### 6. Monitor Queue
 
 Navigate to **Blog Agent** → **Queue** to:
 
@@ -107,7 +129,7 @@ Navigate to **Blog Agent** → **Queue** to:
 - View error messages for failed tasks
 - Cleanup old completed/failed tasks
 
-### 6. Monitor Activity
+### 7. Monitor Activity
 
 Navigate to **Blog Agent** → **Logs** to:
 
@@ -117,7 +139,7 @@ Navigate to **Blog Agent** → **Logs** to:
 - Debug issues
 - Clear old logs
 
-### 7. Generate Images
+### 8. Generate Images
 
 Navigate to **Blog Agent** → **Image Generation** to:
 
