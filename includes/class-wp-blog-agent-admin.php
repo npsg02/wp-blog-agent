@@ -58,6 +58,15 @@ class WP_Blog_Agent_Admin {
         
         add_submenu_page(
             'wp-blog-agent',
+            __('Queue', 'wp-blog-agent'),
+            __('Queue', 'wp-blog-agent'),
+            'manage_options',
+            'wp-blog-agent-queue',
+            array($this, 'render_queue_page')
+        );
+        
+        add_submenu_page(
+            'wp-blog-agent',
             __('Logs', 'wp-blog-agent'),
             __('Logs', 'wp-blog-agent'),
             'manage_options',
@@ -191,6 +200,24 @@ class WP_Blog_Agent_Admin {
     }
     
     /**
+     * Render queue page
+     */
+    public function render_queue_page() {
+        if (!current_user_can('manage_options')) {
+            return;
+        }
+        
+        // Handle cleanup action
+        if (isset($_POST['cleanup_queue']) && check_admin_referer('wp_blog_agent_cleanup_queue')) {
+            $days = isset($_POST['cleanup_days']) ? intval($_POST['cleanup_days']) : 7;
+            $deleted = WP_Blog_Agent_Queue::cleanup($days);
+            echo '<div class="notice notice-success"><p>' . sprintf(__('Cleaned up %d completed/failed tasks!', 'wp-blog-agent'), $deleted) . '</p></div>';
+        }
+        
+        include WP_BLOG_AGENT_PLUGIN_DIR . 'admin/queue-page.php';
+    }
+    
+    /**
      * Render image generation page
      */
     public function render_image_gen_page() {
@@ -285,14 +312,15 @@ class WP_Blog_Agent_Admin {
         
         WP_Blog_Agent_Logger::info('Manual generation triggered');
         
-        $generator = new WP_Blog_Agent_Generator();
         $topic_id = isset($_GET['topic_id']) ? intval($_GET['topic_id']) : null;
-        $result = $generator->generate_post($topic_id);
         
-        if (is_wp_error($result)) {
-            wp_redirect(admin_url('admin.php?page=wp-blog-agent-topics&error=' . urlencode($result->get_error_message())));
+        // Add to queue
+        $queue_id = WP_Blog_Agent_Queue::enqueue($topic_id, 'manual');
+        
+        if ($queue_id === false) {
+            wp_redirect(admin_url('admin.php?page=wp-blog-agent-topics&error=' . urlencode('Failed to add generation task to queue')));
         } else {
-            wp_redirect(admin_url('admin.php?page=wp-blog-agent-posts&generated=' . $result));
+            wp_redirect(admin_url('admin.php?page=wp-blog-agent-topics&queued=' . $queue_id));
         }
         exit;
     }

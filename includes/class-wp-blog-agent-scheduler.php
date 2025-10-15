@@ -7,6 +7,7 @@ class WP_Blog_Agent_Scheduler {
     public function __construct() {
         // Hook into WordPress cron
         add_action('wp_blog_agent_generate_post', array($this, 'scheduled_generation'));
+        add_action('wp_blog_agent_process_queue', array('WP_Blog_Agent_Queue', 'process_queue'));
         
         // Add custom cron schedules
         add_filter('cron_schedules', array($this, 'add_cron_schedules'));
@@ -43,19 +44,16 @@ class WP_Blog_Agent_Scheduler {
             return;
         }
         
-        WP_Blog_Agent_Logger::info('Starting scheduled post generation');
+        WP_Blog_Agent_Logger::info('Adding scheduled post generation to queue');
         
-        // Generate a post
-        $generator = new WP_Blog_Agent_Generator();
-        $result = $generator->generate_post();
+        // Add task to queue
+        $queue_id = WP_Blog_Agent_Queue::enqueue(null, 'scheduled');
         
-        // Log the result
-        if (is_wp_error($result)) {
-            WP_Blog_Agent_Logger::error('Scheduled generation failed', array('error' => $result->get_error_message()));
-            error_log('WP Blog Agent: Failed to generate post - ' . $result->get_error_message());
+        if ($queue_id === false) {
+            WP_Blog_Agent_Logger::error('Failed to enqueue scheduled generation task');
+            error_log('WP Blog Agent: Failed to enqueue scheduled generation task');
         } else {
-            WP_Blog_Agent_Logger::success('Scheduled generation completed', array('post_id' => $result));
-            error_log('WP Blog Agent: Successfully generated post ID: ' . $result);
+            WP_Blog_Agent_Logger::success('Scheduled generation task enqueued', array('queue_id' => $queue_id));
         }
     }
     

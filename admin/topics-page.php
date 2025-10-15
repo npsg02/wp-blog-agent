@@ -9,6 +9,10 @@
     if (isset($_GET['deleted'])) {
         echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__('Topic deleted successfully!', 'wp-blog-agent') . '</p></div>';
     }
+    if (isset($_GET['queued'])) {
+        $queue_id = intval($_GET['queued']);
+        echo '<div class="notice notice-success is-dismissible"><p>' . sprintf(esc_html__('Generation task #%d added to queue! The post will be generated shortly.', 'wp-blog-agent'), $queue_id) . ' <a href="' . admin_url('admin.php?page=wp-blog-agent-queue') . '">' . esc_html__('View Queue', 'wp-blog-agent') . '</a></p></div>';
+    }
     if (isset($_GET['error'])) {
         echo '<div class="notice notice-error is-dismissible"><p>' . esc_html($_GET['error']) . '</p></div>';
     }
