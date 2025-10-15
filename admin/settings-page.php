@@ -1,8 +1,23 @@
 <div class="wrap">
     <h1><?php echo esc_html__('WP Blog Agent - Settings', 'wp-blog-agent'); ?></h1>
     
+    <?php
+    $active_tab = isset($_GET['tab']) ? sanitize_text_field($_GET['tab']) : 'api';
+    ?>
+    
+    <h2 class="nav-tab-wrapper">
+        <a href="?page=wp-blog-agent&tab=api" class="nav-tab <?php echo $active_tab === 'api' ? 'nav-tab-active' : ''; ?>">
+            <?php echo esc_html__('API Credentials', 'wp-blog-agent'); ?>
+        </a>
+        <a href="?page=wp-blog-agent&tab=general" class="nav-tab <?php echo $active_tab === 'general' ? 'nav-tab-active' : ''; ?>">
+            <?php echo esc_html__('General Settings', 'wp-blog-agent'); ?>
+        </a>
+    </h2>
+    
+    <?php if ($active_tab === 'api'): ?>
+    <!-- API Credentials Tab -->
     <form method="post" action="">
-        <?php wp_nonce_field('wp_blog_agent_settings', 'wp_blog_agent_settings_nonce'); ?>
+        <?php wp_nonce_field('wp_blog_agent_api_settings', 'wp_blog_agent_api_settings_nonce'); ?>
         
         <table class="form-table">
             <tr>
@@ -41,6 +56,47 @@
             
             <tr>
                 <th scope="row">
+                    <label for="gemini_api_key"><?php echo esc_html__('Gemini API Key', 'wp-blog-agent'); ?></label>
+                </th>
+                <td>
+                    <input type="password" name="gemini_api_key" id="gemini_api_key" value="<?php echo esc_attr(get_option('wp_blog_agent_gemini_api_key', '')); ?>" class="regular-text" />
+                    <p class="description"><?php echo esc_html__('Enter your Google Gemini API key. Get one at https://makersuite.google.com/app/apikey', 'wp-blog-agent'); ?></p>
+                </td>
+            </tr>
+            
+            <tr>
+                <th scope="row">
+                    <label for="gemini_image_api_key"><?php echo esc_html__('Gemini Image API Key', 'wp-blog-agent'); ?></label>
+                </th>
+                <td>
+                    <input type="password" name="gemini_image_api_key" id="gemini_image_api_key" value="<?php echo esc_attr(get_option('wp_blog_agent_gemini_image_api_key', '')); ?>" class="regular-text" />
+                    <p class="description"><?php echo esc_html__('Enter your Google Gemini API key for image generation (Imagen API). Can be the same as text generation key.', 'wp-blog-agent'); ?></p>
+                </td>
+            </tr>
+            
+            <tr>
+                <th scope="row">
+                    <label for="ollama_base_url"><?php echo esc_html__('Ollama Base URL', 'wp-blog-agent'); ?></label>
+                </th>
+                <td>
+                    <input type="text" name="ollama_base_url" id="ollama_base_url" value="<?php echo esc_attr(get_option('wp_blog_agent_ollama_base_url', 'http://localhost:11434/api/generate')); ?>" class="regular-text" />
+                    <p class="description"><?php echo esc_html__('Ollama API endpoint. Default: http://localhost:11434/api/generate', 'wp-blog-agent'); ?></p>
+                </td>
+            </tr>
+        </table>
+        
+        <?php submit_button(__('Save API Credentials', 'wp-blog-agent')); ?>
+    </form>
+    
+    <?php else: ?>
+    <!-- General Settings Tab -->
+    <form method="post" action="">
+        <?php wp_nonce_field('wp_blog_agent_general_settings', 'wp_blog_agent_general_settings_nonce'); ?>
+        
+        <h3><?php echo esc_html__('AI Model Configuration', 'wp-blog-agent'); ?></h3>
+        <table class="form-table">
+            <tr>
+                <th scope="row">
                     <label for="openai_model"><?php echo esc_html__('OpenAI Model', 'wp-blog-agent'); ?></label>
                 </th>
                 <td>
@@ -66,16 +122,6 @@
                 <td>
                     <textarea name="openai_system_prompt" id="openai_system_prompt" class="large-text" rows="3"><?php echo esc_textarea(get_option('wp_blog_agent_openai_system_prompt', 'You are a professional blog writer who creates SEO-optimized, engaging content.')); ?></textarea>
                     <p class="description"><?php echo esc_html__('Custom system prompt for the AI. Default: "You are a professional blog writer who creates SEO-optimized, engaging content."', 'wp-blog-agent'); ?></p>
-                </td>
-            </tr>
-            
-            <tr>
-                <th scope="row">
-                    <label for="gemini_api_key"><?php echo esc_html__('Gemini API Key', 'wp-blog-agent'); ?></label>
-                </th>
-                <td>
-                    <input type="password" name="gemini_api_key" id="gemini_api_key" value="<?php echo esc_attr(get_option('wp_blog_agent_gemini_api_key', '')); ?>" class="regular-text" />
-                    <p class="description"><?php echo esc_html__('Enter your Google Gemini API key. Get one at https://makersuite.google.com/app/apikey', 'wp-blog-agent'); ?></p>
                 </td>
             </tr>
             
@@ -111,16 +157,6 @@
             
             <tr>
                 <th scope="row">
-                    <label for="ollama_base_url"><?php echo esc_html__('Ollama Base URL', 'wp-blog-agent'); ?></label>
-                </th>
-                <td>
-                    <input type="text" name="ollama_base_url" id="ollama_base_url" value="<?php echo esc_attr(get_option('wp_blog_agent_ollama_base_url', 'http://localhost:11434/api/generate')); ?>" class="regular-text" />
-                    <p class="description"><?php echo esc_html__('Ollama API endpoint. Default: http://localhost:11434/api/generate', 'wp-blog-agent'); ?></p>
-                </td>
-            </tr>
-            
-            <tr>
-                <th scope="row">
                     <label for="ollama_model"><?php echo esc_html__('Ollama Model', 'wp-blog-agent'); ?></label>
                 </th>
                 <td>
@@ -138,7 +174,10 @@
                     <p class="description"><?php echo esc_html__('Custom system prompt for the AI. This will be prepended to the user prompt. Default: "You are a professional blog writer who creates SEO-optimized, engaging content."', 'wp-blog-agent'); ?></p>
                 </td>
             </tr>
-            
+        </table>
+        
+        <h3><?php echo esc_html__('Post Generation Settings', 'wp-blog-agent'); ?></h3>
+        <table class="form-table">
             <tr>
                 <th scope="row">
                     <label for="schedule_enabled"><?php echo esc_html__('Enable Scheduling', 'wp-blog-agent'); ?></label>
@@ -194,8 +233,9 @@
             </tr>
         </table>
         
-        <?php submit_button(__('Save Settings', 'wp-blog-agent')); ?>
+        <?php submit_button(__('Save General Settings', 'wp-blog-agent')); ?>
     </form>
+    <?php endif; ?>
     
     <hr>
     

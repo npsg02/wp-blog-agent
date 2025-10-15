@@ -21,28 +21,18 @@
     if (isset($_GET['error'])) {
         echo '<div class="notice notice-error is-dismissible"><p>' . esc_html($_GET['error']) . '</p></div>';
     }
-    ?>
     
-    <div class="wp-blog-agent-image-settings" style="background: #fff; padding: 20px; border: 1px solid #ccd0d4; box-shadow: 0 1px 1px rgba(0,0,0,.04); margin-bottom: 20px;">
-        <h2><?php echo esc_html__('Image Generation Settings', 'wp-blog-agent'); ?></h2>
-        <form method="post" action="">
-            <?php wp_nonce_field('wp_blog_agent_image_settings', 'wp_blog_agent_image_settings_nonce'); ?>
-            
-            <table class="form-table">
-                <tr>
-                    <th scope="row">
-                        <label for="gemini_image_api_key"><?php echo esc_html__('Gemini Image API Key', 'wp-blog-agent'); ?></label>
-                    </th>
-                    <td>
-                        <input type="password" name="gemini_image_api_key" id="gemini_image_api_key" value="<?php echo esc_attr(get_option('wp_blog_agent_gemini_image_api_key', '')); ?>" class="regular-text" />
-                        <p class="description"><?php echo esc_html__('Enter your Google Gemini API key for image generation (Imagen API). Get one at https://makersuite.google.com/app/apikey', 'wp-blog-agent'); ?></p>
-                    </td>
-                </tr>
-            </table>
-            
-            <?php submit_button(__('Save Settings', 'wp-blog-agent')); ?>
-        </form>
-    </div>
+    // Check if API key is configured
+    $api_key = get_option('wp_blog_agent_gemini_image_api_key', '');
+    if (empty($api_key)) {
+        echo '<div class="notice notice-warning"><p>' . 
+             sprintf(
+                 esc_html__('Gemini Image API key is not configured. Please configure it in %s.', 'wp-blog-agent'),
+                 '<a href="' . admin_url('admin.php?page=wp-blog-agent&tab=api') . '">' . esc_html__('API Credentials', 'wp-blog-agent') . '</a>'
+             ) . 
+             '</p></div>';
+    }
+    ?>
     
     <div class="wp-blog-agent-image-container">
         <div class="wp-blog-agent-generate-image">

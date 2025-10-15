@@ -88,24 +88,27 @@ class WP_Blog_Agent_Admin {
      * Register plugin settings
      */
     public function register_settings() {
-        register_setting('wp_blog_agent_settings', 'wp_blog_agent_ai_provider');
-        register_setting('wp_blog_agent_settings', 'wp_blog_agent_openai_api_key');
-        register_setting('wp_blog_agent_settings', 'wp_blog_agent_openai_base_url');
-        register_setting('wp_blog_agent_settings', 'wp_blog_agent_openai_model');
-        register_setting('wp_blog_agent_settings', 'wp_blog_agent_openai_max_tokens');
-        register_setting('wp_blog_agent_settings', 'wp_blog_agent_openai_system_prompt');
-        register_setting('wp_blog_agent_settings', 'wp_blog_agent_gemini_api_key');
-        register_setting('wp_blog_agent_settings', 'wp_blog_agent_gemini_model');
-        register_setting('wp_blog_agent_settings', 'wp_blog_agent_gemini_max_tokens');
-        register_setting('wp_blog_agent_settings', 'wp_blog_agent_gemini_system_prompt');
-        register_setting('wp_blog_agent_settings', 'wp_blog_agent_gemini_image_api_key');
-        register_setting('wp_blog_agent_settings', 'wp_blog_agent_ollama_base_url');
-        register_setting('wp_blog_agent_settings', 'wp_blog_agent_ollama_model');
-        register_setting('wp_blog_agent_settings', 'wp_blog_agent_ollama_system_prompt');
-        register_setting('wp_blog_agent_settings', 'wp_blog_agent_schedule_enabled');
-        register_setting('wp_blog_agent_settings', 'wp_blog_agent_schedule_frequency');
-        register_setting('wp_blog_agent_settings', 'wp_blog_agent_auto_publish');
-        register_setting('wp_blog_agent_settings', 'wp_blog_agent_auto_generate_image');
+        // API Credentials group - separate to prevent accidental reset
+        register_setting('wp_blog_agent_api_settings', 'wp_blog_agent_ai_provider');
+        register_setting('wp_blog_agent_api_settings', 'wp_blog_agent_openai_api_key');
+        register_setting('wp_blog_agent_api_settings', 'wp_blog_agent_openai_base_url');
+        register_setting('wp_blog_agent_api_settings', 'wp_blog_agent_gemini_api_key');
+        register_setting('wp_blog_agent_api_settings', 'wp_blog_agent_gemini_image_api_key');
+        register_setting('wp_blog_agent_api_settings', 'wp_blog_agent_ollama_base_url');
+        
+        // General Settings group
+        register_setting('wp_blog_agent_general_settings', 'wp_blog_agent_openai_model');
+        register_setting('wp_blog_agent_general_settings', 'wp_blog_agent_openai_max_tokens');
+        register_setting('wp_blog_agent_general_settings', 'wp_blog_agent_openai_system_prompt');
+        register_setting('wp_blog_agent_general_settings', 'wp_blog_agent_gemini_model');
+        register_setting('wp_blog_agent_general_settings', 'wp_blog_agent_gemini_max_tokens');
+        register_setting('wp_blog_agent_general_settings', 'wp_blog_agent_gemini_system_prompt');
+        register_setting('wp_blog_agent_general_settings', 'wp_blog_agent_ollama_model');
+        register_setting('wp_blog_agent_general_settings', 'wp_blog_agent_ollama_system_prompt');
+        register_setting('wp_blog_agent_general_settings', 'wp_blog_agent_schedule_enabled');
+        register_setting('wp_blog_agent_general_settings', 'wp_blog_agent_schedule_frequency');
+        register_setting('wp_blog_agent_general_settings', 'wp_blog_agent_auto_publish');
+        register_setting('wp_blog_agent_general_settings', 'wp_blog_agent_auto_generate_image');
     }
     
     /**
@@ -128,21 +131,30 @@ class WP_Blog_Agent_Admin {
             return;
         }
         
-        // Save settings
-        if (isset($_POST['wp_blog_agent_settings_nonce']) && 
-            wp_verify_nonce($_POST['wp_blog_agent_settings_nonce'], 'wp_blog_agent_settings')) {
+        // Save API Credentials settings
+        if (isset($_POST['wp_blog_agent_api_settings_nonce']) && 
+            wp_verify_nonce($_POST['wp_blog_agent_api_settings_nonce'], 'wp_blog_agent_api_settings')) {
             
             update_option('wp_blog_agent_ai_provider', sanitize_text_field($_POST['ai_provider']));
             update_option('wp_blog_agent_openai_api_key', sanitize_text_field($_POST['openai_api_key']));
             update_option('wp_blog_agent_openai_base_url', esc_url_raw($_POST['openai_base_url']));
+            update_option('wp_blog_agent_gemini_api_key', sanitize_text_field($_POST['gemini_api_key']));
+            update_option('wp_blog_agent_gemini_image_api_key', sanitize_text_field($_POST['gemini_image_api_key']));
+            update_option('wp_blog_agent_ollama_base_url', esc_url_raw($_POST['ollama_base_url']));
+            
+            echo '<div class="notice notice-success"><p>' . __('API Credentials saved successfully!', 'wp-blog-agent') . '</p></div>';
+        }
+        
+        // Save General Settings
+        if (isset($_POST['wp_blog_agent_general_settings_nonce']) && 
+            wp_verify_nonce($_POST['wp_blog_agent_general_settings_nonce'], 'wp_blog_agent_general_settings')) {
+            
             update_option('wp_blog_agent_openai_model', sanitize_text_field($_POST['openai_model']));
             update_option('wp_blog_agent_openai_max_tokens', !empty($_POST['openai_max_tokens']) ? absint($_POST['openai_max_tokens']) : '');
             update_option('wp_blog_agent_openai_system_prompt', sanitize_textarea_field($_POST['openai_system_prompt']));
-            update_option('wp_blog_agent_gemini_api_key', sanitize_text_field($_POST['gemini_api_key']));
             update_option('wp_blog_agent_gemini_model', sanitize_text_field($_POST['gemini_model']));
             update_option('wp_blog_agent_gemini_max_tokens', !empty($_POST['gemini_max_tokens']) ? absint($_POST['gemini_max_tokens']) : '');
             update_option('wp_blog_agent_gemini_system_prompt', sanitize_textarea_field($_POST['gemini_system_prompt']));
-            update_option('wp_blog_agent_ollama_base_url', esc_url_raw($_POST['ollama_base_url']));
             update_option('wp_blog_agent_ollama_model', sanitize_text_field($_POST['ollama_model']));
             update_option('wp_blog_agent_ollama_system_prompt', sanitize_textarea_field($_POST['ollama_system_prompt']));
             update_option('wp_blog_agent_schedule_enabled', sanitize_text_field($_POST['schedule_enabled']));
@@ -155,7 +167,7 @@ class WP_Blog_Agent_Admin {
             // Update cron schedule
             WP_Blog_Agent_Scheduler::update_schedule($frequency);
             
-            echo '<div class="notice notice-success"><p>' . __('Settings saved successfully!', 'wp-blog-agent') . '</p></div>';
+            echo '<div class="notice notice-success"><p>' . __('General Settings saved successfully!', 'wp-blog-agent') . '</p></div>';
         }
         
         include WP_BLOG_AGENT_PLUGIN_DIR . 'admin/settings-page.php';
@@ -224,16 +236,6 @@ class WP_Blog_Agent_Admin {
     public function render_image_gen_page() {
         if (!current_user_can('manage_options')) {
             return;
-        }
-        
-        // Save image generation settings
-        if (isset($_POST['wp_blog_agent_image_settings_nonce']) && 
-            wp_verify_nonce($_POST['wp_blog_agent_image_settings_nonce'], 'wp_blog_agent_image_settings')) {
-            
-            update_option('wp_blog_agent_gemini_image_api_key', sanitize_text_field($_POST['gemini_image_api_key']));
-            
-            wp_redirect(admin_url('admin.php?page=wp-blog-agent-image-gen&settings_saved=1'));
-            exit;
         }
         
         include WP_BLOG_AGENT_PLUGIN_DIR . 'admin/image-gen-page.php';
