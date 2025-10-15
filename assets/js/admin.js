@@ -13,26 +13,43 @@
                 $('#openai_api_key').closest('tr').show();
                 $('#openai_base_url').closest('tr').show();
                 $('#openai_model').closest('tr').show();
+                $('#openai_max_tokens').closest('tr').show();
+                $('#openai_system_prompt').closest('tr').show();
                 $('#gemini_api_key').closest('tr').hide();
                 $('#gemini_model').closest('tr').hide();
+                $('#gemini_max_tokens').closest('tr').hide();
+                $('#gemini_system_prompt').closest('tr').hide();
                 $('#ollama_base_url').closest('tr').hide();
                 $('#ollama_model').closest('tr').hide();
+                $('#ollama_system_prompt').closest('tr').hide();
             } else if (provider === 'gemini') {
                 $('#openai_api_key').closest('tr').hide();
                 $('#openai_base_url').closest('tr').hide();
                 $('#openai_model').closest('tr').hide();
+                $('#openai_max_tokens').closest('tr').hide();
+                $('#openai_system_prompt').closest('tr').hide();
                 $('#gemini_api_key').closest('tr').show();
                 $('#gemini_model').closest('tr').show();
+                $('#gemini_max_tokens').closest('tr').show();
+                $('#gemini_system_prompt').closest('tr').show();
+                $('#gemini_max_tokens').closest('tr').show();
+                $('#gemini_system_prompt').closest('tr').show();
                 $('#ollama_base_url').closest('tr').hide();
                 $('#ollama_model').closest('tr').hide();
+                $('#ollama_system_prompt').closest('tr').hide();
             } else if (provider === 'ollama') {
                 $('#openai_api_key').closest('tr').hide();
                 $('#openai_base_url').closest('tr').hide();
                 $('#openai_model').closest('tr').hide();
+                $('#openai_max_tokens').closest('tr').hide();
+                $('#openai_system_prompt').closest('tr').hide();
                 $('#gemini_api_key').closest('tr').hide();
                 $('#gemini_model').closest('tr').hide();
+                $('#gemini_max_tokens').closest('tr').hide();
+                $('#gemini_system_prompt').closest('tr').hide();
                 $('#ollama_base_url').closest('tr').show();
                 $('#ollama_model').closest('tr').show();
+                $('#ollama_system_prompt').closest('tr').show();
             }
         }).trigger('change');
         

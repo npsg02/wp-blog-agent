@@ -6,10 +6,12 @@ class WP_Blog_Agent_Ollama {
     
     private $api_url;
     private $model;
+    private $system_prompt;
     
     public function __construct() {
         $this->api_url = get_option('wp_blog_agent_ollama_base_url', 'http://localhost:11434/api/generate');
         $this->model = get_option('wp_blog_agent_ollama_model', 'llama2');
+        $this->system_prompt = get_option('wp_blog_agent_ollama_system_prompt', 'You are a professional blog writer who creates SEO-optimized, engaging content.');
     }
     
     /**
@@ -18,9 +20,12 @@ class WP_Blog_Agent_Ollama {
     public function generate_content($topic, $keywords = array(), $hashtags = array()) {
         $prompt = $this->build_prompt($topic, $keywords, $hashtags);
         
+        // Prepend system prompt to the user prompt for Ollama
+        $full_prompt = $this->system_prompt . "\n\n" . $prompt;
+        
         $request_body = array(
             'model' => $this->model,
-            'prompt' => $prompt,
+            'prompt' => $full_prompt,
             'stream' => false,
         );
         

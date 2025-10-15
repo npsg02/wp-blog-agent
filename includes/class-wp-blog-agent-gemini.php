@@ -6,10 +6,14 @@ class WP_Blog_Agent_Gemini {
     
     private $api_key;
     private $model;
+    private $max_tokens;
+    private $system_prompt;
     
     public function __construct() {
         $this->api_key = get_option('wp_blog_agent_gemini_api_key', '');
         $this->model = get_option('wp_blog_agent_gemini_model', 'gemini-pro');
+        $this->max_tokens = get_option('wp_blog_agent_gemini_max_tokens', '');
+        $this->system_prompt = get_option('wp_blog_agent_gemini_system_prompt', 'You are a professional blog writer who creates SEO-optimized, engaging content.');
     }
     
     /**
@@ -22,21 +26,30 @@ class WP_Blog_Agent_Gemini {
         
         $prompt = $this->build_prompt($topic, $keywords, $hashtags);
         
+        // Prepend system prompt to the user prompt for Gemini
+        $full_prompt = $this->system_prompt . "\n\n" . $prompt;
+        
         $api_url = 'https://generativelanguage.googleapis.com/v1/models/' . $this->model . ':generateContent';
         $url = $api_url . '?key=' . $this->api_key;
+        
+        $generation_config = array(
+            'temperature' => 0.7,
+        );
+        
+        // Add maxOutputTokens only if it's set (unlimited by default)
+        if (!empty($this->max_tokens)) {
+            $generation_config['maxOutputTokens'] = intval($this->max_tokens);
+        }
         
         $request_body = array(
             'contents' => array(
                 array(
                     'parts' => array(
-                        array('text' => $prompt)
+                        array('text' => $full_prompt)
                     )
                 )
             ),
-            'generationConfig' => array(
-                'temperature' => 0.7,
-                'maxOutputTokens' => 2048,
-            )
+            'generationConfig' => $generation_config
         );
         
         // Log request

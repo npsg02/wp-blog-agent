@@ -73,10 +73,15 @@ class WP_Blog_Agent_Admin {
         register_setting('wp_blog_agent_settings', 'wp_blog_agent_openai_api_key');
         register_setting('wp_blog_agent_settings', 'wp_blog_agent_openai_base_url');
         register_setting('wp_blog_agent_settings', 'wp_blog_agent_openai_model');
+        register_setting('wp_blog_agent_settings', 'wp_blog_agent_openai_max_tokens');
+        register_setting('wp_blog_agent_settings', 'wp_blog_agent_openai_system_prompt');
         register_setting('wp_blog_agent_settings', 'wp_blog_agent_gemini_api_key');
         register_setting('wp_blog_agent_settings', 'wp_blog_agent_gemini_model');
+        register_setting('wp_blog_agent_settings', 'wp_blog_agent_gemini_max_tokens');
+        register_setting('wp_blog_agent_settings', 'wp_blog_agent_gemini_system_prompt');
         register_setting('wp_blog_agent_settings', 'wp_blog_agent_ollama_base_url');
         register_setting('wp_blog_agent_settings', 'wp_blog_agent_ollama_model');
+        register_setting('wp_blog_agent_settings', 'wp_blog_agent_ollama_system_prompt');
         register_setting('wp_blog_agent_settings', 'wp_blog_agent_schedule_enabled');
         register_setting('wp_blog_agent_settings', 'wp_blog_agent_schedule_frequency');
         register_setting('wp_blog_agent_settings', 'wp_blog_agent_auto_publish');
@@ -110,10 +115,15 @@ class WP_Blog_Agent_Admin {
             update_option('wp_blog_agent_openai_api_key', sanitize_text_field($_POST['openai_api_key']));
             update_option('wp_blog_agent_openai_base_url', esc_url_raw($_POST['openai_base_url']));
             update_option('wp_blog_agent_openai_model', sanitize_text_field($_POST['openai_model']));
+            update_option('wp_blog_agent_openai_max_tokens', !empty($_POST['openai_max_tokens']) ? absint($_POST['openai_max_tokens']) : '');
+            update_option('wp_blog_agent_openai_system_prompt', sanitize_textarea_field($_POST['openai_system_prompt']));
             update_option('wp_blog_agent_gemini_api_key', sanitize_text_field($_POST['gemini_api_key']));
             update_option('wp_blog_agent_gemini_model', sanitize_text_field($_POST['gemini_model']));
+            update_option('wp_blog_agent_gemini_max_tokens', !empty($_POST['gemini_max_tokens']) ? absint($_POST['gemini_max_tokens']) : '');
+            update_option('wp_blog_agent_gemini_system_prompt', sanitize_textarea_field($_POST['gemini_system_prompt']));
             update_option('wp_blog_agent_ollama_base_url', esc_url_raw($_POST['ollama_base_url']));
             update_option('wp_blog_agent_ollama_model', sanitize_text_field($_POST['ollama_model']));
+            update_option('wp_blog_agent_ollama_system_prompt', sanitize_textarea_field($_POST['ollama_system_prompt']));
             update_option('wp_blog_agent_schedule_enabled', sanitize_text_field($_POST['schedule_enabled']));
             update_option('wp_blog_agent_auto_publish', sanitize_text_field($_POST['auto_publish']));
             
