@@ -22,11 +22,8 @@ class WP_Blog_Agent_Queue {
         
         $table_name = self::get_table_name();
         
-        // Check if table exists using prepared statement
-        $table_exists = $wpdb->get_var($wpdb->prepare(
-            "SHOW TABLES LIKE %s",
-            $table_name
-        )) === $table_name;
+        // Check if table exists
+        $table_exists = $wpdb->get_var("SHOW TABLES LIKE '$table_name'") === $table_name;
         
         if ($table_exists) {
             return true;
@@ -46,36 +43,22 @@ class WP_Blog_Agent_Queue {
             created_at datetime DEFAULT CURRENT_TIMESTAMP,
             started_at datetime DEFAULT NULL,
             completed_at datetime DEFAULT NULL,
-            PRIMARY KEY  (id),
+            PRIMARY KEY (id),
             KEY status (status),
             KEY created_at (created_at)
         ) $charset_collate;";
         
         require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
+        dbDelta($sql);
         
-        // Capture any errors from dbDelta
-        $wpdb->show_errors();
-        $result = dbDelta($sql);
-        $db_error = $wpdb->last_error;
-        $wpdb->hide_errors();
-        
-        // Verify table was created using prepared statement
-        $table_exists = $wpdb->get_var($wpdb->prepare(
-            "SHOW TABLES LIKE %s",
-            $table_name
-        )) === $table_name;
+        // Verify table was created
+        $table_exists = $wpdb->get_var("SHOW TABLES LIKE '$table_name'") === $table_name;
         
         if (!$table_exists) {
-            // Try to get more error details
-            $error_info = array(
+            WP_Blog_Agent_Logger::error('Failed to create queue table', array(
                 'table_name' => $table_name,
-                'error' => $db_error,
-                'dbdelta_result' => $result,
-                'charset_collate' => $charset_collate,
-                'sql_preview' => substr($sql, 0, 200) . '...'
-            );
-            
-            WP_Blog_Agent_Logger::error('Failed to create queue table', $error_info);
+                'error' => $wpdb->last_error
+            ));
             return false;
         }
         
