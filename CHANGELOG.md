@@ -57,6 +57,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Automatic retry logic for failed generation tasks (up to 3 attempts)**
 - **Background processing via WordPress Cron**
 - **Queue cleanup functionality for old completed/failed tasks**
+- **Post Series Management feature for creating related content series**
+- **AI-powered topic suggestions based on existing posts in a series**
+- **Series creation and management interface**
+- **Automatic addition of generated posts to series**
+- **Add existing posts to series functionality**
+- **Remove posts from series capability**
+- **Series statistics and post count tracking**
+- **New database tables for series and series-post relationships**
 
 ### Improved
 - Enhanced error handling for OpenAI API with detailed error messages
