@@ -164,6 +164,16 @@ class WP_Blog_Agent_Gemini {
         $prompt .= "{$requirement_num}. Optimize for SEO with proper keyword density\n";
         $requirement_num++;
         
+        // Check if inline images are enabled
+        $auto_generate_inline_images = get_option('wp_blog_agent_auto_generate_inline_images', 'no');
+        if ($auto_generate_inline_images === 'yes') {
+            $prompt .= "{$requirement_num}. Add 2-4 image placeholders throughout the article using this exact format: [IMAGE: description of the image needed]\n";
+            $prompt .= "   - Place image placeholders where visual content would enhance understanding\n";
+            $prompt .= "   - Each placeholder should have a clear, descriptive text about what the image should show\n";
+            $prompt .= "   - Example: [IMAGE: A professional workspace with laptop and coffee]\n";
+            $requirement_num++;
+        }
+        
         // Add hashtags if provided
         if (!empty($hashtags) && is_array($hashtags)) {
             $prompt .= "{$requirement_num}. Add these hashtags at the end: " . implode(' ', $hashtags) . "\n";

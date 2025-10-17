@@ -70,6 +70,13 @@ class WP_Blog_Agent_Generator {
         // Extract title and content
         $parsed = $this->parse_content($content);
         
+        // Process inline images if enabled
+        $auto_generate_inline_images = get_option('wp_blog_agent_auto_generate_inline_images', 'no');
+        if ($auto_generate_inline_images === 'yes') {
+            WP_Blog_Agent_Logger::info('Processing inline image placeholders');
+            $parsed['content'] = $this->process_image_placeholders($parsed['content'], $topic->topic);
+        }
+        
         // Determine post status
         $auto_publish = get_option('wp_blog_agent_auto_publish', 'yes');
         $post_status = ($auto_publish === 'yes') ? 'publish' : 'draft';
@@ -241,5 +248,127 @@ class WP_Blog_Agent_Generator {
             ));
             return false;
         }
+    }
+    
+    /**
+     * Process image placeholders in content and replace with generated images
+     */
+    private function process_image_placeholders($content, $topic) {
+        // Find all image placeholders in the format [IMAGE: description]
+        preg_match_all('/\[IMAGE:\s*([^\]]+)\]/i', $content, $matches);
+        
+        if (empty($matches[0])) {
+            WP_Blog_Agent_Logger::info('No image placeholders found in content');
+            return $content;
+        }
+        
+        $placeholders = $matches[0]; // Full placeholder text
+        $descriptions = $matches[1]; // Image descriptions
+        
+        WP_Blog_Agent_Logger::info('Found image placeholders', array(
+            'count' => count($placeholders),
+            'descriptions' => $descriptions
+        ));
+        
+        $image_generator = new WP_Blog_Agent_Image_Generator();
+        
+        // Process each placeholder
+        foreach ($placeholders as $index => $placeholder) {
+            $description = trim($descriptions[$index]);
+            
+            // Create enhanced prompt for image generation
+            $image_prompt = sprintf(
+                'Create a high-quality, professional image for a blog post about "%s". The image should show: %s. Make it visually appealing, modern, and relevant.',
+                $topic,
+                $description
+            );
+            
+            WP_Blog_Agent_Logger::info('Generating inline image', array(
+                'index' => $index + 1,
+                'description' => $description,
+                'prompt' => substr($image_prompt, 0, 100)
+            ));
+            
+            // Set parameters for inline images
+            $params = array(
+                'aspectRatio' => '16:9',
+                'imageSize' => '1K',
+                'sampleCount' => 1,
+                'outputMimeType' => 'image/jpeg',
+                'personGeneration' => 'ALLOW_ALL'
+            );
+            
+            // Generate image
+            $images = $image_generator->generate_image($image_prompt, $params);
+            
+            if (is_wp_error($images)) {
+                WP_Blog_Agent_Logger::error('Failed to generate inline image', array(
+                    'index' => $index + 1,
+                    'error' => $images->get_error_message()
+                ));
+                // Replace with a comment indicating failure
+                $replacement = sprintf(
+                    '<!-- Image placeholder: %s (generation failed) -->',
+                    esc_html($description)
+                );
+                $content = str_replace($placeholder, $replacement, $content);
+                continue;
+            }
+            
+            // Upload the first generated image
+            $image = $images[0];
+            $filename = sanitize_title(substr($description, 0, 50));
+            if (empty($filename)) {
+                $filename = 'inline-image-' . ($index + 1);
+            }
+            
+            $attachment_id = $image_generator->upload_to_media_library(
+                $image['base64'],
+                $filename,
+                $image['mime_type'],
+                0 // Not attached to post yet
+            );
+            
+            if (is_wp_error($attachment_id)) {
+                WP_Blog_Agent_Logger::error('Failed to upload inline image', array(
+                    'index' => $index + 1,
+                    'error' => $attachment_id->get_error_message()
+                ));
+                // Replace with a comment indicating failure
+                $replacement = sprintf(
+                    '<!-- Image placeholder: %s (upload failed) -->',
+                    esc_html($description)
+                );
+                $content = str_replace($placeholder, $replacement, $content);
+                continue;
+            }
+            
+            // Get image URL
+            $image_url = wp_get_attachment_url($attachment_id);
+            
+            // Store metadata
+            update_post_meta($attachment_id, '_wp_blog_agent_generated_image', true);
+            update_post_meta($attachment_id, '_wp_blog_agent_image_prompt', $image_prompt);
+            update_post_meta($attachment_id, '_wp_blog_agent_inline_image', true);
+            
+            // Create HTML image tag
+            $image_html = sprintf(
+                '<figure class="wp-block-image"><img src="%s" alt="%s" class="wp-blog-agent-inline-image" /><figcaption>%s</figcaption></figure>',
+                esc_url($image_url),
+                esc_attr($description),
+                esc_html($description)
+            );
+            
+            // Replace placeholder with actual image
+            $content = str_replace($placeholder, $image_html, $content);
+            
+            WP_Blog_Agent_Logger::success('Inline image generated and inserted', array(
+                'index' => $index + 1,
+                'attachment_id' => $attachment_id,
+                'url' => $image_url
+            ));
+        }
+        
+        return $content;
     }
 }
