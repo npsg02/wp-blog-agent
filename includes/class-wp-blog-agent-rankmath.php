@@ -183,152 +183,198 @@ class WP_Blog_Agent_RankMath {
      * Generate using OpenAI
      */
     private function generate_with_openai($ai, $prompt) {
-        $reflection = new ReflectionClass($ai);
-        $api_key_prop = $reflection->getProperty('api_key');
-        $api_key_prop->setAccessible(true);
-        $api_key = $api_key_prop->getValue($ai);
-        
-        if (empty($api_key)) {
-            return new WP_Error('no_api_key', 'OpenAI API key is not configured.');
+        try {
+            $reflection = new ReflectionClass($ai);
+            $api_key_prop = $reflection->getProperty('api_key');
+            $api_key_prop->setAccessible(true);
+            $api_key = $api_key_prop->getValue($ai);
+            
+            if (empty($api_key)) {
+                return new WP_Error('no_api_key', 'OpenAI API key is not configured.');
+            }
+            
+            $api_url_prop = $reflection->getProperty('api_url');
+            $api_url_prop->setAccessible(true);
+            $api_url = $api_url_prop->getValue($ai);
+            
+            $model_prop = $reflection->getProperty('model');
+            $model_prop->setAccessible(true);
+            $model = $model_prop->getValue($ai);
+            
+            $request_body = array(
+                'model' => $model,
+                'messages' => array(
+                    array(
+                        'role' => 'user',
+                        'content' => $prompt
+                    )
+                ),
+                'temperature' => 0.7,
+                'max_tokens' => 100
+            );
+            
+            $response = wp_remote_post($api_url, array(
+                'headers' => array(
+                    'Content-Type' => 'application/json',
+                    'Authorization' => 'Bearer ' . $api_key,
+                ),
+                'body' => json_encode($request_body),
+                'timeout' => 30,
+            ));
+            
+            if (is_wp_error($response)) {
+                return $response;
+            }
+            
+            $response_code = wp_remote_retrieve_response_code($response);
+            $body = json_decode(wp_remote_retrieve_body($response), true);
+            
+            // Check for API errors
+            if ($response_code !== 200) {
+                $error_message = 'OpenAI API error';
+                if (isset($body['error']['message'])) {
+                    $error_message = $body['error']['message'];
+                } elseif (isset($body['error'])) {
+                    $error_message = is_string($body['error']) ? $body['error'] : json_encode($body['error']);
+                }
+                return new WP_Error('api_error', $error_message);
+            }
+            
+            if (isset($body['choices'][0]['message']['content'])) {
+                return $body['choices'][0]['message']['content'];
+            }
+            
+            return new WP_Error('invalid_response', 'Invalid response from OpenAI API.');
+        } catch (Exception $e) {
+            return new WP_Error('exception', 'Exception in OpenAI generation: ' . $e->getMessage());
         }
-        
-        $api_url_prop = $reflection->getProperty('api_url');
-        $api_url_prop->setAccessible(true);
-        $api_url = $api_url_prop->getValue($ai);
-        
-        $model_prop = $reflection->getProperty('model');
-        $model_prop->setAccessible(true);
-        $model = $model_prop->getValue($ai);
-        
-        $request_body = array(
-            'model' => $model,
-            'messages' => array(
-                array(
-                    'role' => 'user',
-                    'content' => $prompt
-                )
-            ),
-            'temperature' => 0.7,
-            'max_tokens' => 100
-        );
-        
-        $response = wp_remote_post($api_url, array(
-            'headers' => array(
-                'Content-Type' => 'application/json',
-                'Authorization' => 'Bearer ' . $api_key,
-            ),
-            'body' => json_encode($request_body),
-            'timeout' => 30,
-        ));
-        
-        if (is_wp_error($response)) {
-            return $response;
-        }
-        
-        $body = json_decode(wp_remote_retrieve_body($response), true);
-        
-        if (isset($body['choices'][0]['message']['content'])) {
-            return $body['choices'][0]['message']['content'];
-        }
-        
-        return new WP_Error('invalid_response', 'Invalid response from OpenAI API.');
     }
     
     /**
      * Generate using Gemini
      */
     private function generate_with_gemini($ai, $prompt) {
-        $reflection = new ReflectionClass($ai);
-        $api_key_prop = $reflection->getProperty('api_key');
-        $api_key_prop->setAccessible(true);
-        $api_key = $api_key_prop->getValue($ai);
-        
-        if (empty($api_key)) {
-            return new WP_Error('no_api_key', 'Gemini API key is not configured.');
-        }
-        
-        $model_prop = $reflection->getProperty('model');
-        $model_prop->setAccessible(true);
-        $model = $model_prop->getValue($ai);
-        
-        $api_url = "https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key={$api_key}";
-        
-        $request_body = array(
-            'contents' => array(
-                array(
-                    'parts' => array(
-                        array('text' => $prompt)
+        try {
+            $reflection = new ReflectionClass($ai);
+            $api_key_prop = $reflection->getProperty('api_key');
+            $api_key_prop->setAccessible(true);
+            $api_key = $api_key_prop->getValue($ai);
+            
+            if (empty($api_key)) {
+                return new WP_Error('no_api_key', 'Gemini API key is not configured.');
+            }
+            
+            $model_prop = $reflection->getProperty('model');
+            $model_prop->setAccessible(true);
+            $model = $model_prop->getValue($ai);
+            
+            $api_url = "https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key={$api_key}";
+            
+            $request_body = array(
+                'contents' => array(
+                    array(
+                        'parts' => array(
+                            array('text' => $prompt)
+                        )
                     )
+                ),
+                'generationConfig' => array(
+                    'temperature' => 0.7,
+                    'maxOutputTokens' => 100
                 )
-            ),
-            'generationConfig' => array(
-                'temperature' => 0.7,
-                'maxOutputTokens' => 100
-            )
-        );
-        
-        $response = wp_remote_post($api_url, array(
-            'headers' => array(
-                'Content-Type' => 'application/json',
-            ),
-            'body' => json_encode($request_body),
-            'timeout' => 30,
-        ));
-        
-        if (is_wp_error($response)) {
-            return $response;
+            );
+            
+            $response = wp_remote_post($api_url, array(
+                'headers' => array(
+                    'Content-Type' => 'application/json',
+                ),
+                'body' => json_encode($request_body),
+                'timeout' => 30,
+            ));
+            
+            if (is_wp_error($response)) {
+                return $response;
+            }
+            
+            $response_code = wp_remote_retrieve_response_code($response);
+            $body = json_decode(wp_remote_retrieve_body($response), true);
+            
+            // Check for API errors
+            if ($response_code !== 200) {
+                $error_message = 'Gemini API error';
+                if (isset($body['error']['message'])) {
+                    $error_message = $body['error']['message'];
+                } elseif (isset($body['error'])) {
+                    $error_message = is_string($body['error']) ? $body['error'] : json_encode($body['error']);
+                }
+                return new WP_Error('api_error', $error_message);
+            }
+            
+            if (isset($body['candidates'][0]['content']['parts'][0]['text'])) {
+                return $body['candidates'][0]['content']['parts'][0]['text'];
+            }
+            
+            return new WP_Error('invalid_response', 'Invalid response from Gemini API.');
+        } catch (Exception $e) {
+            return new WP_Error('exception', 'Exception in Gemini generation: ' . $e->getMessage());
         }
-        
-        $body = json_decode(wp_remote_retrieve_body($response), true);
-        
-        if (isset($body['candidates'][0]['content']['parts'][0]['text'])) {
-            return $body['candidates'][0]['content']['parts'][0]['text'];
-        }
-        
-        return new WP_Error('invalid_response', 'Invalid response from Gemini API.');
     }
     
     /**
      * Generate using Ollama
      */
     private function generate_with_ollama($ai, $prompt) {
-        $reflection = new ReflectionClass($ai);
-        $api_url_prop = $reflection->getProperty('api_url');
-        $api_url_prop->setAccessible(true);
-        $api_url = $api_url_prop->getValue($ai);
-        
-        $model_prop = $reflection->getProperty('model');
-        $model_prop->setAccessible(true);
-        $model = $model_prop->getValue($ai);
-        
-        $request_body = array(
-            'model' => $model,
-            'prompt' => $prompt,
-            'stream' => false,
-            'options' => array(
-                'temperature' => 0.7,
-                'num_predict' => 100
-            )
-        );
-        
-        $response = wp_remote_post($api_url, array(
-            'headers' => array(
-                'Content-Type' => 'application/json',
-            ),
-            'body' => json_encode($request_body),
-            'timeout' => 30,
-        ));
-        
-        if (is_wp_error($response)) {
-            return $response;
+        try {
+            $reflection = new ReflectionClass($ai);
+            $api_url_prop = $reflection->getProperty('api_url');
+            $api_url_prop->setAccessible(true);
+            $api_url = $api_url_prop->getValue($ai);
+            
+            $model_prop = $reflection->getProperty('model');
+            $model_prop->setAccessible(true);
+            $model = $model_prop->getValue($ai);
+            
+            $request_body = array(
+                'model' => $model,
+                'prompt' => $prompt,
+                'stream' => false,
+                'options' => array(
+                    'temperature' => 0.7,
+                    'num_predict' => 100
+                )
+            );
+            
+            $response = wp_remote_post($api_url, array(
+                'headers' => array(
+                    'Content-Type' => 'application/json',
+                ),
+                'body' => json_encode($request_body),
+                'timeout' => 30,
+            ));
+            
+            if (is_wp_error($response)) {
+                return $response;
+            }
+            
+            $response_code = wp_remote_retrieve_response_code($response);
+            $body = json_decode(wp_remote_retrieve_body($response), true);
+            
+            // Check for API errors
+            if ($response_code !== 200) {
+                $error_message = 'Ollama API error';
+                if (isset($body['error'])) {
+                    $error_message = is_string($body['error']) ? $body['error'] : json_encode($body['error']);
+                }
+                return new WP_Error('api_error', $error_message);
+            }
+            
+            if (isset($body['response'])) {
+                return $body['response'];
+            }
+            
+            return new WP_Error('invalid_response', 'Invalid response from Ollama API.');
+        } catch (Exception $e) {
+            return new WP_Error('exception', 'Exception in Ollama generation: ' . $e->getMessage());
         }
-        
-        $body = json_decode(wp_remote_retrieve_body($response), true);
-        
-        if (isset($body['response'])) {
-            return $body['response'];
-        }
-        
-        return new WP_Error('invalid_response', 'Invalid response from Ollama API.');
     }
 }
