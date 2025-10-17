@@ -171,4 +171,65 @@ class WP_Blog_Agent_OpenAI {
         
         return $prompt;
     }
+    
+    /**
+     * Generate topic suggestions using OpenAI
+     */
+    public function generate_topic_suggestions($prompt) {
+        if (empty($this->api_key)) {
+            return new WP_Error('no_api_key', 'OpenAI API key is not configured.');
+        }
+        
+        $request_body = array(
+            'model' => $this->model,
+            'messages' => array(
+                array(
+                    'role' => 'system',
+                    'content' => 'You are a creative content strategist who suggests relevant topics based on existing content.'
+                ),
+                array(
+                    'role' => 'user',
+                    'content' => $prompt
+                )
+            ),
+            'temperature' => 0.8,
+        );
+        
+        $response = wp_remote_post($this->api_url, array(
+            'headers' => array(
+                'Content-Type' => 'application/json',
+                'Authorization' => 'Bearer ' . $this->api_key,
+            ),
+            'body' => json_encode($request_body),
+            'timeout' => 60,
+        ));
+        
+        if (is_wp_error($response)) {
+            return $response;
+        }
+        
+        $status_code = wp_remote_retrieve_response_code($response);
+        $body = json_decode(wp_remote_retrieve_body($response), true);
+        
+        if ($status_code !== 200) {
+            $error_message = 'OpenAI API returned status code ' . $status_code;
+            if (isset($body['error']['message'])) {
+                $error_message .= ': ' . $body['error']['message'];
+            }
+            return new WP_Error('openai_http_error', $error_message);
+        }
+        
+        if (isset($body['error'])) {
+            $error_message = is_array($body['error']) && isset($body['error']['message']) 
+                ? $body['error']['message'] 
+                : 'Unknown error';
+            return new WP_Error('openai_error', $error_message);
+        }
+        
+        if (!isset($body['choices'][0]['message']['content'])) {
+            return new WP_Error('invalid_response', 'Invalid response from OpenAI API');
+        }
+        
+        return $body['choices'][0]['message']['content'];
+    }
 }
