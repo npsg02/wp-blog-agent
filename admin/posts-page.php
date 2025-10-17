@@ -92,6 +92,12 @@
                             <?php echo esc_html__('View', 'wp-blog-agent'); ?>
                         </a>
                         <?php endif; ?>
+                        <button type="button" class="button button-small wp-blog-agent-generate-seo" data-post-id="<?php echo get_the_ID(); ?>">
+                            <?php echo esc_html__('Generate SEO', 'wp-blog-agent'); ?>
+                        </button>
+                        <button type="button" class="button button-small wp-blog-agent-generate-image" data-post-id="<?php echo get_the_ID(); ?>">
+                            <?php echo esc_html__('Generate Image', 'wp-blog-agent'); ?>
+                        </button>
                     </td>
                 </tr>
                 <?php endwhile; ?>

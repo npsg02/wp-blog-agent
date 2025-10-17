@@ -231,6 +231,19 @@
                     <p class="description"><?php echo esc_html__('Automatically generate and set featured image for generated posts using Gemini Imagen API.', 'wp-blog-agent'); ?></p>
                 </td>
             </tr>
+            
+            <tr>
+                <th scope="row">
+                    <label for="auto_generate_seo"><?php echo esc_html__('Auto Generate RankMath SEO', 'wp-blog-agent'); ?></label>
+                </th>
+                <td>
+                    <select name="auto_generate_seo" id="auto_generate_seo" class="regular-text">
+                        <option value="yes" <?php selected(get_option('wp_blog_agent_auto_generate_seo', 'no'), 'yes'); ?>><?php echo esc_html__('Yes', 'wp-blog-agent'); ?></option>
+                        <option value="no" <?php selected(get_option('wp_blog_agent_auto_generate_seo', 'no'), 'no'); ?>><?php echo esc_html__('No', 'wp-blog-agent'); ?></option>
+                    </select>
+                    <p class="description"><?php echo esc_html__('Automatically generate SEO meta description and focus keyword for RankMath SEO plugin.', 'wp-blog-agent'); ?></p>
+                </td>
+            </tr>
         </table>
         
         <?php submit_button(__('Save General Settings', 'wp-blog-agent')); ?>

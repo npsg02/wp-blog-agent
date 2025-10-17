@@ -110,6 +110,12 @@ class WP_Blog_Agent_Generator {
             $this->generate_featured_image($post_id, $parsed['title'], $topic->topic);
         }
         
+        // Auto-generate RankMath SEO meta if enabled
+        $auto_generate_seo = get_option('wp_blog_agent_auto_generate_seo', 'no');
+        if ($auto_generate_seo === 'yes') {
+            $this->generate_rankmath_seo($post_id);
+        }
+        
         return $post_id;
     }
     
@@ -202,6 +208,34 @@ class WP_Blog_Agent_Generator {
             return $attachment_id;
         } catch (Exception $e) {
             WP_Blog_Agent_Logger::error('Exception during auto-image generation', array(
+                'post_id' => $post_id,
+                'error' => $e->getMessage()
+            ));
+            return false;
+        }
+    }
+    
+    /**
+     * Generate RankMath SEO meta for a post
+     */
+    private function generate_rankmath_seo($post_id) {
+        try {
+            WP_Blog_Agent_Logger::info('Auto-generating RankMath SEO meta', array(
+                'post_id' => $post_id
+            ));
+            
+            $rankmath = new WP_Blog_Agent_RankMath();
+            $results = $rankmath->generate_all_seo_meta($post_id);
+            
+            WP_Blog_Agent_Logger::success('RankMath SEO meta generated', array(
+                'post_id' => $post_id,
+                'description' => $results['description'],
+                'keyword' => $results['keyword']
+            ));
+            
+            return true;
+        } catch (Exception $e) {
+            WP_Blog_Agent_Logger::error('Exception during RankMath SEO generation', array(
                 'post_id' => $post_id,
                 'error' => $e->getMessage()
             ));
