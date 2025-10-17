@@ -644,12 +644,31 @@ class WP_Blog_Agent_Admin {
             ));
             
             $rankmath = new WP_Blog_Agent_RankMath();
-            $results = $rankmath->generate_all_seo_meta($post_id);
+            
+            // Generate description
+            $description = $rankmath->generate_seo_description($post_id);
+            if (is_wp_error($description)) {
+                WP_Blog_Agent_Logger::error('Failed to auto-generate SEO description', array(
+                    'post_id' => $post_id,
+                    'error' => $description->get_error_message()
+                ));
+                return false;
+            }
+            
+            // Generate keyword
+            $keyword = $rankmath->generate_focus_keyword($post_id);
+            if (is_wp_error($keyword)) {
+                WP_Blog_Agent_Logger::error('Failed to auto-generate focus keyword', array(
+                    'post_id' => $post_id,
+                    'error' => $keyword->get_error_message()
+                ));
+                return false;
+            }
             
             WP_Blog_Agent_Logger::success('RankMath SEO meta generated', array(
                 'post_id' => $post_id,
-                'description' => $results['description'],
-                'keyword' => $results['keyword']
+                'description' => $description,
+                'keyword' => $keyword
             ));
             
             return true;
