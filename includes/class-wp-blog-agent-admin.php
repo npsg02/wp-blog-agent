@@ -105,6 +105,15 @@ class WP_Blog_Agent_Admin {
             'wp-blog-agent-image-gen',
             array($this, 'render_image_gen_page')
         );
+        
+        add_submenu_page(
+            'wp-blog-agent',
+            __('Health Check', 'wp-blog-agent'),
+            __('Health Check', 'wp-blog-agent'),
+            'manage_options',
+            'wp-blog-agent-health-check',
+            array($this, 'render_health_check_page')
+        );
     }
     
     /**
@@ -273,6 +282,17 @@ class WP_Blog_Agent_Admin {
         }
         
         include WP_BLOG_AGENT_PLUGIN_DIR . 'admin/image-gen-page.php';
+    }
+    
+    /**
+     * Render health check page
+     */
+    public function render_health_check_page() {
+        if (!current_user_can('manage_options')) {
+            return;
+        }
+        
+        include WP_BLOG_AGENT_PLUGIN_DIR . 'admin/health-check-page.php';
     }
     
     /**

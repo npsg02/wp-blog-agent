@@ -38,6 +38,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **Health Check Module for comprehensive system diagnostics**
+- **Database health verification (table existence and schema validation)**
+- **LLM API connectivity testing with response time tracking**
+- **Queue health monitoring with statistics and failure rate calculation**
+- **Version compatibility checks (plugin, database, WordPress, PHP)**
+- **Image generation configuration validation**
+- **Stuck task detection (tasks processing > 1 hour)**
+- **Cron job status monitoring**
+- **System information dashboard**
+- **Health Check admin page with color-coded status indicators**
+- **Overall system health status calculation**
+- **One-click health check refresh**
+- **Comprehensive health check documentation (HEALTH_CHECK_FEATURE.md)**
+
+### Improved
+- README.md updated with health check feature and troubleshooting guide
+- ARCHITECTURE.md updated with health check class documentation
+- File structure documentation updated to include health check files
+- Troubleshooting section now recommends running health check first
+
 ## [1.0.3] - 2025-10-18
 
 ### Added

@@ -30,6 +30,7 @@ require_once WP_BLOG_AGENT_PLUGIN_DIR . 'includes/class-wp-blog-agent-activator.
 require_once WP_BLOG_AGENT_PLUGIN_DIR . 'includes/class-wp-blog-agent-deactivator.php';
 require_once WP_BLOG_AGENT_PLUGIN_DIR . 'includes/class-wp-blog-agent-queue.php';
 require_once WP_BLOG_AGENT_PLUGIN_DIR . 'includes/class-wp-blog-agent-series.php';
+require_once WP_BLOG_AGENT_PLUGIN_DIR . 'includes/class-wp-blog-agent-health-check.php';
 require_once WP_BLOG_AGENT_PLUGIN_DIR . 'includes/class-wp-blog-agent-admin.php';
 require_once WP_BLOG_AGENT_PLUGIN_DIR . 'includes/class-wp-blog-agent-generator.php';
 require_once WP_BLOG_AGENT_PLUGIN_DIR . 'includes/class-wp-blog-agent-openai.php';
@@ -38,6 +39,7 @@ require_once WP_BLOG_AGENT_PLUGIN_DIR . 'includes/class-wp-blog-agent-ollama.php
 require_once WP_BLOG_AGENT_PLUGIN_DIR . 'includes/class-wp-blog-agent-scheduler.php';
 require_once WP_BLOG_AGENT_PLUGIN_DIR . 'includes/class-wp-blog-agent-image-generator.php';
 require_once WP_BLOG_AGENT_PLUGIN_DIR . 'includes/class-wp-blog-agent-rankmath.php';
+
 
 // Activation hook
 register_activation_hook(__FILE__, array('WP_Blog_Agent_Activator', 'activate'));

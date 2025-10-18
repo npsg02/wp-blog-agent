@@ -98,6 +98,36 @@
   - Track series statistics (post count, etc.)
   - Coordinate with AI providers for topic suggestions
 
+#### WP_Blog_Agent_Logger
+- **Purpose**: Activity logging and debugging
+- **Responsibilities**:
+  - Write logs to file system
+  - Log levels (info, warning, error)
+  - Format and timestamp log entries
+  - Rotate log files
+  - Provide log viewing interface
+
+#### WP_Blog_Agent_Validator
+- **Purpose**: Input validation and sanitization
+- **Responsibilities**:
+  - Validate API keys
+  - Validate topic data
+  - Sanitize user inputs
+  - Test API connections
+  - Validate email lists and settings
+
+#### WP_Blog_Agent_Health_Check
+- **Purpose**: System health monitoring and diagnostics
+- **Responsibilities**:
+  - Verify database tables exist and validate schema
+  - Test LLM API connectivity (OpenAI, Gemini)
+  - Monitor queue health and statistics
+  - Check version compatibility (plugin, database, WordPress, PHP)
+  - Validate image generation configuration
+  - Provide comprehensive health status dashboard
+  - Calculate overall system health status
+  - Detect issues like stuck tasks and high failure rates
+
 ## Data Flow
 
 ```
