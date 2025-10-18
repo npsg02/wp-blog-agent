@@ -57,6 +57,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Automatic retry logic for failed generation tasks (up to 3 attempts)**
 - **Background processing via WordPress Cron**
 - **Queue cleanup functionality for old completed/failed tasks**
+- **Auto Generate Inline Images feature for blog posts**
+- **AI automatically adds image placeholders in generated content**
+- **Placeholders are replaced with AI-generated illustrative images**
+- **Settings option to enable/disable inline image generation**
+- **Support for 2-4 inline images per post for enhanced visual appeal**
 - **Post Series Management feature for creating related content series**
 - **AI-powered topic suggestions based on existing posts in a series**
 - **Series creation and management interface**

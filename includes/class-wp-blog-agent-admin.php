@@ -133,6 +133,7 @@ class WP_Blog_Agent_Admin {
         register_setting('wp_blog_agent_general_settings', 'wp_blog_agent_auto_publish');
         register_setting('wp_blog_agent_general_settings', 'wp_blog_agent_auto_generate_image');
         register_setting('wp_blog_agent_general_settings', 'wp_blog_agent_auto_generate_seo');
+        register_setting('wp_blog_agent_general_settings', 'wp_blog_agent_auto_generate_inline_images');
     }
     
     /**
@@ -192,6 +193,7 @@ class WP_Blog_Agent_Admin {
             update_option('wp_blog_agent_auto_publish', sanitize_text_field($_POST['auto_publish']));
             update_option('wp_blog_agent_auto_generate_image', sanitize_text_field($_POST['auto_generate_image']));
             update_option('wp_blog_agent_auto_generate_seo', isset($_POST['auto_generate_seo']) ? sanitize_text_field($_POST['auto_generate_seo']) : 'no');
+            update_option('wp_blog_agent_auto_generate_inline_images', isset($_POST['auto_generate_inline_images']) ? sanitize_text_field($_POST['auto_generate_inline_images']) : 'no');
             
             $frequency = sanitize_text_field($_POST['schedule_frequency']);
             update_option('wp_blog_agent_schedule_frequency', $frequency);

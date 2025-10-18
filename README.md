@@ -9,6 +9,7 @@ A powerful WordPress plugin that automates blog post generation using OpenAI GPT
 - **RankMath SEO Integration**: Automatically generate SEO meta descriptions and focus keywords for RankMath SEO plugin
 - **Task Queue System**: Asynchronous generation with automatic retry on failure (up to 3 attempts)
 - **AI Image Generation**: Generate images using Gemini Imagen API and save to WordPress media library
+- **Inline Image Generation**: Automatically add illustrative images throughout blog post content with AI-generated placeholders
 - **Manual SEO & Image Generation**: Generate SEO metadata and featured images for existing posts with one click
 - **Custom OpenAI Base URL**: Configure custom API endpoints for OpenAI-compatible services (supports any OpenAI-compatible API)
 - **Quick Manual Generation**: Generate posts immediately without saving topics to the database
@@ -70,6 +71,18 @@ Navigate to **Blog Agent** → **Settings** to configure:
 - **Enable Scheduling**: Turn on/off automated post generation
 - **Schedule Frequency**: Choose how often to generate posts (hourly, twice daily, daily, weekly)
 - **Auto Publish**: Decide whether to publish posts automatically or save as drafts
+- **Auto Generate Featured Image**: Automatically create and set a featured image for each post using AI
+- **Auto Generate RankMath SEO**: Automatically generate SEO metadata for RankMath plugin
+- **Auto Generate Inline Images**: Enable AI to automatically add illustrative images throughout the blog post content
+
+#### Inline Images Feature
+When **Auto Generate Inline Images** is enabled:
+- The AI will add 2-4 image placeholders in the generated content at strategic locations
+- Each placeholder describes what the image should show
+- After content generation, the plugin automatically generates AI images for each placeholder
+- Placeholders are replaced with actual images embedded in the content
+- Images are saved to your WordPress media library with proper metadata
+- This creates visually rich, professional blog posts with relevant illustrations
 
 ### 3. Manage Topics
 

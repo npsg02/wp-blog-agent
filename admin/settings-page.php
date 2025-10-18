@@ -244,6 +244,19 @@
                     <p class="description"><?php echo esc_html__('Automatically generate SEO meta description and focus keyword for RankMath SEO plugin.', 'wp-blog-agent'); ?></p>
                 </td>
             </tr>
+            
+            <tr>
+                <th scope="row">
+                    <label for="auto_generate_inline_images"><?php echo esc_html__('Auto Generate Inline Images', 'wp-blog-agent'); ?></label>
+                </th>
+                <td>
+                    <select name="auto_generate_inline_images" id="auto_generate_inline_images" class="regular-text">
+                        <option value="yes" <?php selected(get_option('wp_blog_agent_auto_generate_inline_images', 'no'), 'yes'); ?>><?php echo esc_html__('Yes', 'wp-blog-agent'); ?></option>
+                        <option value="no" <?php selected(get_option('wp_blog_agent_auto_generate_inline_images', 'no'), 'no'); ?>><?php echo esc_html__('No', 'wp-blog-agent'); ?></option>
+                    </select>
+                    <p class="description"><?php echo esc_html__('Automatically generate and insert illustrative images throughout the blog post content using AI. The AI will add image placeholders in the content, then generate and insert actual images.', 'wp-blog-agent'); ?></p>
+                </td>
+            </tr>
         </table>
         
         <?php submit_button(__('Save General Settings', 'wp-blog-agent')); ?>
