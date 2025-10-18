@@ -115,8 +115,10 @@ Navigate to **Blog Agent** → **Series** to:
   - Click "Get AI Suggestions" on any series with at least one post
   - AI analyzes existing post titles in the series
   - Suggests relevant topics that follow the theme
-  - Select a suggestion and click "Generate Selected Topic"
-  - The new post is automatically added to the series
+  - **Select one or multiple suggestions** using checkboxes
+  - Click "Generate Selected Topics" to add them to the generation queue
+  - Posts are generated asynchronously in the background
+  - The new posts are automatically added to the series
 - **Manage Series Posts**: View, reorder, or remove posts from a series
 
 **Example Workflow:**
@@ -126,8 +128,13 @@ Navigate to **Blog Agent** → **Series** to:
    - "Advanced WordPress Security Plugins"
    - "Implementing Two-Factor Authentication in WordPress"
    - "WordPress Security Best Practices for 2024"
-4. Select a suggestion and generate the next post in the series
-5. Repeat the process to continue building your series
+   - "Securing WordPress Database and Files"
+   - "WordPress Backup and Recovery Strategies"
+4. **Select multiple suggestions** (e.g., check 3 topics)
+5. Click "Generate Selected Topics" - all 3 posts are queued for generation
+6. Continue working while posts generate in the background
+7. Check **Blog Agent** → **Queue** to monitor progress
+8. Repeat the process to continue building your series
 
 ### 5. View Generated Posts
 
@@ -218,24 +225,28 @@ Navigate to **Blog Agent** → **Image Generation** to:
 4. A task will be added to the queue for that specific topic
 5. Monitor progress in **Blog Agent** → **Queue**
 
-### Series-Based Generation
+### Series-Based Generation (Batch Support)
 
 1. Go to **Blog Agent** → **Series**
 2. Create a new series or select an existing one
 3. Add at least one post to the series (or generate one manually)
 4. Click **Get AI Suggestions** to analyze existing posts
-5. AI will suggest relevant topics for continuation
-6. Select a suggested topic and click **Generate Selected Topic**
-7. The new post will be created and automatically added to the series
-8. Repeat to continue building your content series
+5. AI will suggest 5 relevant topics for continuation
+6. **Select one or multiple topics** using checkboxes
+7. Click **Generate Selected Topics** to add them to the queue
+8. Posts are generated asynchronously - no need to wait!
+9. Monitor progress in **Blog Agent** → **Queue**
+10. Repeat to continue building your content series
 
 **Example Series Workflow:**
 - Create a series: "Complete Guide to WordPress Security"
 - Add/generate first post: "WordPress Security Basics"
-- Get suggestions: AI suggests "WordPress Plugin Security", "Hardening wp-config.php", etc.
-- Select and generate: Choose "WordPress Plugin Security"
-- New post is created and added to the series automatically
-- Continue the process to build a comprehensive content series
+- Get suggestions: AI suggests 5 topics like "WordPress Plugin Security", "Hardening wp-config.php", "Two-Factor Authentication", etc.
+- **Select multiple topics**: Check 3 topics you want to generate
+- Click "Generate Selected Topics": All 3 posts are queued
+- Continue working while posts generate in background
+- Check queue page to see progress
+- Once completed, all posts are automatically added to the series
 
 ### Image Generation for Blog Posts
 
