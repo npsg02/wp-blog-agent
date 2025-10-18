@@ -29,6 +29,7 @@ require_once WP_BLOG_AGENT_PLUGIN_DIR . 'includes/class-wp-blog-agent-validator.
 require_once WP_BLOG_AGENT_PLUGIN_DIR . 'includes/class-wp-blog-agent-activator.php';
 require_once WP_BLOG_AGENT_PLUGIN_DIR . 'includes/class-wp-blog-agent-deactivator.php';
 require_once WP_BLOG_AGENT_PLUGIN_DIR . 'includes/class-wp-blog-agent-queue.php';
+require_once WP_BLOG_AGENT_PLUGIN_DIR . 'includes/class-wp-blog-agent-series.php';
 require_once WP_BLOG_AGENT_PLUGIN_DIR . 'includes/class-wp-blog-agent-admin.php';
 require_once WP_BLOG_AGENT_PLUGIN_DIR . 'includes/class-wp-blog-agent-generator.php';
 require_once WP_BLOG_AGENT_PLUGIN_DIR . 'includes/class-wp-blog-agent-openai.php';

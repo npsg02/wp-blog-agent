@@ -14,9 +14,19 @@ class WP_Blog_Agent_Admin {
         add_action('admin_post_wp_blog_agent_generate_manual', array($this, 'handle_generate_manual'));
         add_action('admin_post_wp_blog_agent_generate_image', array($this, 'handle_generate_image'));
         
+        // Series handlers
+        add_action('admin_post_wp_blog_agent_create_series', array($this, 'handle_create_series'));
+        add_action('admin_post_wp_blog_agent_delete_series', array($this, 'handle_delete_series'));
+        add_action('admin_post_wp_blog_agent_add_post_to_series', array($this, 'handle_add_post_to_series'));
+        add_action('admin_post_wp_blog_agent_remove_post_from_series', array($this, 'handle_remove_post_from_series'));
+        add_action('admin_post_wp_blog_agent_generate_from_suggestion', array($this, 'handle_generate_from_suggestion'));
+        
         // AJAX handlers for RankMath SEO generation
         add_action('wp_ajax_wp_blog_agent_generate_seo', array($this, 'ajax_generate_seo'));
         add_action('wp_ajax_wp_blog_agent_generate_post_image', array($this, 'ajax_generate_post_image'));
+        
+        // AJAX handler for topic suggestions
+        add_action('wp_ajax_wp_blog_agent_get_suggestions', array($this, 'ajax_get_suggestions'));
     }
     
     /**
@@ -49,6 +59,15 @@ class WP_Blog_Agent_Admin {
             'manage_options',
             'wp-blog-agent-topics',
             array($this, 'render_topics_page')
+        );
+        
+        add_submenu_page(
+            'wp-blog-agent',
+            __('Series', 'wp-blog-agent'),
+            __('Series', 'wp-blog-agent'),
+            'manage_options',
+            'wp-blog-agent-series',
+            array($this, 'render_series_page')
         );
         
         add_submenu_page(
@@ -646,12 +665,31 @@ class WP_Blog_Agent_Admin {
             ));
             
             $rankmath = new WP_Blog_Agent_RankMath();
-            $results = $rankmath->generate_all_seo_meta($post_id);
+            
+            // Generate description
+            $description = $rankmath->generate_seo_description($post_id);
+            if (is_wp_error($description)) {
+                WP_Blog_Agent_Logger::error('Failed to auto-generate SEO description', array(
+                    'post_id' => $post_id,
+                    'error' => $description->get_error_message()
+                ));
+                return false;
+            }
+            
+            // Generate keyword
+            $keyword = $rankmath->generate_focus_keyword($post_id);
+            if (is_wp_error($keyword)) {
+                WP_Blog_Agent_Logger::error('Failed to auto-generate focus keyword', array(
+                    'post_id' => $post_id,
+                    'error' => $keyword->get_error_message()
+                ));
+                return false;
+            }
             
             WP_Blog_Agent_Logger::success('RankMath SEO meta generated', array(
                 'post_id' => $post_id,
-                'description' => $results['description'],
-                'keyword' => $results['keyword']
+                'description' => $description,
+                'keyword' => $keyword
             ));
             
             return true;
@@ -684,14 +722,35 @@ class WP_Blog_Agent_Admin {
         
         WP_Blog_Agent_Logger::info('Manual SEO generation triggered', array('post_id' => $post_id));
         
-        $rankmath = new WP_Blog_Agent_RankMath();
-        $results = $rankmath->generate_all_seo_meta($post_id);
-        
-        wp_send_json_success(array(
-            'message' => 'SEO meta generated successfully!',
-            'description' => $results['description'],
-            'keyword' => $results['keyword']
-        ));
+        try {
+            $rankmath = new WP_Blog_Agent_RankMath();
+            
+            // Generate description
+            $description = $rankmath->generate_seo_description($post_id);
+            if (is_wp_error($description)) {
+                wp_send_json_error(array('message' => 'Failed to generate description: ' . $description->get_error_message()));
+                return;
+            }
+            
+            // Generate keyword
+            $keyword = $rankmath->generate_focus_keyword($post_id);
+            if (is_wp_error($keyword)) {
+                wp_send_json_error(array('message' => 'Failed to generate keyword: ' . $keyword->get_error_message()));
+                return;
+            }
+            
+            wp_send_json_success(array(
+                'message' => 'SEO meta generated successfully!',
+                'description' => $description,
+                'keyword' => $keyword
+            ));
+        } catch (Exception $e) {
+            WP_Blog_Agent_Logger::error('Exception during SEO generation', array(
+                'post_id' => $post_id,
+                'error' => $e->getMessage()
+            ));
+            wp_send_json_error(array('message' => $e->getMessage()));
+        }
     }
     
     /**
@@ -773,5 +832,246 @@ class WP_Blog_Agent_Admin {
             ));
             wp_send_json_error(array('message' => $e->getMessage()));
         }
+    }
+    
+    /**
+     * Render series page
+     */
+    public function render_series_page() {
+        if (!current_user_can('manage_options')) {
+            wp_die(__('You do not have sufficient permissions to access this page.'));
+        }
+        
+        include WP_BLOG_AGENT_PLUGIN_DIR . 'admin/series-page.php';
+    }
+    
+    /**
+     * Handle create series
+     */
+    public function handle_create_series() {
+        if (!current_user_can('manage_options')) {
+            wp_die(__('You do not have sufficient permissions to perform this action.'));
+        }
+        
+        check_admin_referer('wp_blog_agent_create_series');
+        
+        $name = isset($_POST['series_name']) ? sanitize_text_field($_POST['series_name']) : '';
+        $description = isset($_POST['series_description']) ? sanitize_textarea_field($_POST['series_description']) : '';
+        
+        if (empty($name)) {
+            wp_redirect(admin_url('admin.php?page=wp-blog-agent-series&error=empty_name'));
+            exit;
+        }
+        
+        $series_id = WP_Blog_Agent_Series::create_series($name, $description);
+        
+        if ($series_id) {
+            wp_redirect(admin_url('admin.php?page=wp-blog-agent-series&created=' . $series_id));
+        } else {
+            wp_redirect(admin_url('admin.php?page=wp-blog-agent-series&error=creation_failed'));
+        }
+        exit;
+    }
+    
+    /**
+     * Handle delete series
+     */
+    public function handle_delete_series() {
+        if (!current_user_can('manage_options')) {
+            wp_die(__('You do not have sufficient permissions to perform this action.'));
+        }
+        
+        check_admin_referer('wp_blog_agent_delete_series');
+        
+        $series_id = isset($_GET['series_id']) ? intval($_GET['series_id']) : 0;
+        
+        if ($series_id > 0) {
+            WP_Blog_Agent_Series::delete_series($series_id);
+            wp_redirect(admin_url('admin.php?page=wp-blog-agent-series&deleted=1'));
+        } else {
+            wp_redirect(admin_url('admin.php?page=wp-blog-agent-series&error=invalid_id'));
+        }
+        exit;
+    }
+    
+    /**
+     * Handle add post to series
+     */
+    public function handle_add_post_to_series() {
+        if (!current_user_can('manage_options')) {
+            wp_die(__('You do not have sufficient permissions to perform this action.'));
+        }
+        
+        check_admin_referer('wp_blog_agent_add_post_to_series');
+        
+        $series_id = isset($_POST['series_id']) ? intval($_POST['series_id']) : 0;
+        $post_id = isset($_POST['post_id']) ? intval($_POST['post_id']) : 0;
+        
+        if ($series_id > 0 && $post_id > 0) {
+            WP_Blog_Agent_Series::add_post_to_series($series_id, $post_id);
+            wp_redirect(admin_url('admin.php?page=wp-blog-agent-series&view=' . $series_id . '&added_post=1'));
+        } else {
+            wp_redirect(admin_url('admin.php?page=wp-blog-agent-series&error=invalid_data'));
+        }
+        exit;
+    }
+    
+    /**
+     * Handle remove post from series
+     */
+    public function handle_remove_post_from_series() {
+        if (!current_user_can('manage_options')) {
+            wp_die(__('You do not have sufficient permissions to perform this action.'));
+        }
+        
+        check_admin_referer('wp_blog_agent_remove_post_from_series');
+        
+        $series_id = isset($_GET['series_id']) ? intval($_GET['series_id']) : 0;
+        $post_id = isset($_GET['post_id']) ? intval($_GET['post_id']) : 0;
+        
+        if ($series_id > 0 && $post_id > 0) {
+            WP_Blog_Agent_Series::remove_post_from_series($series_id, $post_id);
+            wp_redirect(admin_url('admin.php?page=wp-blog-agent-series&view=' . $series_id . '&removed_post=1'));
+        } else {
+            wp_redirect(admin_url('admin.php?page=wp-blog-agent-series&error=invalid_data'));
+        }
+        exit;
+    }
+    
+    /**
+     * Handle generate from suggestion
+     */
+    public function handle_generate_from_suggestion() {
+        if (!current_user_can('manage_options')) {
+            wp_die(__('You do not have sufficient permissions to perform this action.'));
+        }
+        
+        check_admin_referer('wp_blog_agent_generate_from_suggestion');
+        
+        $series_id = isset($_POST['series_id']) ? intval($_POST['series_id']) : 0;
+        $topic = isset($_POST['topic']) ? sanitize_text_field($_POST['topic']) : '';
+        
+        if (empty($topic)) {
+            wp_redirect(admin_url('admin.php?page=wp-blog-agent-series&view=' . $series_id . '&error=empty_topic'));
+            exit;
+        }
+        
+        WP_Blog_Agent_Logger::info('Generating post from series suggestion', array(
+            'series_id' => $series_id,
+            'topic' => $topic
+        ));
+        
+        // Get AI provider
+        $provider = get_option('wp_blog_agent_ai_provider', 'openai');
+        
+        // Generate content
+        if ($provider === 'gemini') {
+            $ai = new WP_Blog_Agent_Gemini();
+        } elseif ($provider === 'ollama') {
+            $ai = new WP_Blog_Agent_Ollama();
+        } else {
+            $ai = new WP_Blog_Agent_OpenAI();
+        }
+        
+        $content = $ai->generate_content($topic, array(), array());
+        
+        if (is_wp_error($content)) {
+            WP_Blog_Agent_Logger::error('Series content generation failed', array(
+                'error' => $content->get_error_message(),
+                'provider' => $provider,
+                'series_id' => $series_id
+            ));
+            wp_redirect(admin_url('admin.php?page=wp-blog-agent-series&view=' . $series_id . '&error=' . urlencode($content->get_error_message())));
+            exit;
+        }
+        
+        WP_Blog_Agent_Logger::info('Series content generated successfully', array('provider' => $provider));
+        
+        // Parse content to extract title and body
+        $parsed = $this->parse_generated_content($content);
+        
+        // Determine post status
+        $auto_publish = get_option('wp_blog_agent_auto_publish', 'yes');
+        $post_status = ($auto_publish === 'yes') ? 'publish' : 'draft';
+        
+        // Create the post
+        $post_data = array(
+            'post_title'   => $parsed['title'],
+            'post_content' => $parsed['content'],
+            'post_status'  => $post_status,
+            'post_author'  => 1,
+            'post_type'    => 'post',
+            'post_excerpt' => $this->generate_excerpt($parsed['content']),
+        );
+        
+        $post_id = wp_insert_post($post_data);
+        
+        if (is_wp_error($post_id)) {
+            WP_Blog_Agent_Logger::error('Series post creation failed', array('error' => $post_id->get_error_message()));
+            wp_redirect(admin_url('admin.php?page=wp-blog-agent-series&view=' . $series_id . '&error=' . urlencode($post_id->get_error_message())));
+            exit;
+        }
+        
+        WP_Blog_Agent_Logger::success('Series post created successfully', array(
+            'post_id' => $post_id,
+            'title' => $parsed['title'],
+            'status' => $post_status,
+            'series_id' => $series_id
+        ));
+        
+        // Add metadata
+        update_post_meta($post_id, '_wp_blog_agent_generated', true);
+        update_post_meta($post_id, '_wp_blog_agent_topic_id', 0); // 0 indicates series generation
+        update_post_meta($post_id, '_wp_blog_agent_keywords', '');
+        update_post_meta($post_id, '_wp_blog_agent_hashtags', '');
+        update_post_meta($post_id, '_wp_blog_agent_provider', $provider);
+        update_post_meta($post_id, '_wp_blog_agent_series_id', $series_id);
+        
+        // Add post to series
+        WP_Blog_Agent_Series::add_post_to_series($series_id, $post_id);
+        
+        // Auto-generate featured image if enabled
+        $auto_generate_image = get_option('wp_blog_agent_auto_generate_image', 'no');
+        if ($auto_generate_image === 'yes') {
+            $this->auto_generate_featured_image($post_id, $parsed['title'], $topic);
+        }
+        
+        // Auto-generate RankMath SEO meta if enabled
+        $auto_generate_seo = get_option('wp_blog_agent_auto_generate_seo', 'no');
+        if ($auto_generate_seo === 'yes') {
+            $rankmath = new WP_Blog_Agent_RankMath();
+            $rankmath->generate_seo_meta($post_id);
+        }
+        
+        wp_redirect(admin_url('admin.php?page=wp-blog-agent-series&view=' . $series_id . '&post_generated=' . $post_id));
+        exit;
+    }
+    
+    /**
+     * AJAX handler for getting topic suggestions
+     */
+    public function ajax_get_suggestions() {
+        check_ajax_referer('wp_blog_agent_suggestions', 'nonce');
+        
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error(array('message' => 'Permission denied'));
+            return;
+        }
+        
+        $series_id = isset($_POST['series_id']) ? intval($_POST['series_id']) : 0;
+        
+        if ($series_id <= 0) {
+            wp_send_json_error(array('message' => 'Invalid series ID'));
+            return;
+        }
+        
+        $suggestions = WP_Blog_Agent_Series::generate_topic_suggestions($series_id);
+        
+        if (is_wp_error($suggestions)) {
+            wp_send_json_error(array('message' => $suggestions->get_error_message()));
+            return;
+        }
+        
+        wp_send_json_success(array('suggestions' => $suggestions));
     }
 }

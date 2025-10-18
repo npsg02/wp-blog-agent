@@ -184,4 +184,68 @@ class WP_Blog_Agent_Gemini {
         
         return $prompt;
     }
+    
+    /**
+     * Generate topic suggestions using Gemini
+     */
+    public function generate_topic_suggestions($prompt) {
+        if (empty($this->api_key)) {
+            return new WP_Error('no_api_key', 'Gemini API key is not configured.');
+        }
+        
+        $system_prompt = 'You are a creative content strategist who suggests relevant topics based on existing content.';
+        $full_prompt = $system_prompt . "\n\n" . $prompt;
+        
+        $api_url = 'https://generativelanguage.googleapis.com/v1/models/' . $this->model . ':generateContent';
+        $url = $api_url . '?key=' . $this->api_key;
+        
+        $request_body = array(
+            'contents' => array(
+                array(
+                    'parts' => array(
+                        array('text' => $full_prompt)
+                    )
+                )
+            ),
+            'generationConfig' => array(
+                'temperature' => 0.8,
+            )
+        );
+        
+        $response = wp_remote_post($url, array(
+            'headers' => array(
+                'Content-Type' => 'application/json',
+            ),
+            'body' => json_encode($request_body),
+            'timeout' => 60,
+        ));
+        
+        if (is_wp_error($response)) {
+            return $response;
+        }
+        
+        $status_code = wp_remote_retrieve_response_code($response);
+        $body = json_decode(wp_remote_retrieve_body($response), true);
+        
+        if ($status_code !== 200) {
+            $error_message = 'Gemini API returned status code ' . $status_code;
+            if (isset($body['error']['message'])) {
+                $error_message .= ': ' . $body['error']['message'];
+            }
+            return new WP_Error('gemini_http_error', $error_message);
+        }
+        
+        if (isset($body['error'])) {
+            $error_message = is_array($body['error']) && isset($body['error']['message']) 
+                ? $body['error']['message'] 
+                : 'Unknown error';
+            return new WP_Error('gemini_error', $error_message);
+        }
+        
+        if (!isset($body['candidates'][0]['content']['parts'][0]['text'])) {
+            return new WP_Error('invalid_response', 'Invalid response from Gemini API');
+        }
+        
+        return $body['candidates'][0]['content']['parts'][0]['text'];
+    }
 }
