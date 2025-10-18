@@ -56,13 +56,15 @@ When AI suggestions return a list of topic posts, users should be able to select
 Added two new columns to the queue table:
 
 ```sql
-ALTER TABLE wp_blog_agent_queue 
+-- Note: In actual implementation, WordPress prefix is used dynamically
+-- Example shown with wp_ prefix for clarity
+ALTER TABLE {$wpdb->prefix}blog_agent_queue 
 ADD COLUMN topic_text varchar(500) DEFAULT NULL,
 ADD COLUMN series_id mediumint(9) DEFAULT NULL;
 ```
 
 **Fields:**
-- `topic_text`: Stores the topic title for series generation (when topic_id is NULL)
+- `topic_text`: Stores the complete topic text/content for series generation (when topic_id is NULL)
 - `series_id`: Links the queue task to a specific series
 
 ### Queue System Enhancement
@@ -422,5 +424,4 @@ This feature aligns with modern asynchronous UI patterns and significantly enhan
 
 - **Issue Reporter:** np2023v2
 - **Implementation:** GitHub Copilot
-- **Feature Request:** Issue #[number]
-- **Release Version:** 1.0.3 (planned)
+- **Repository:** https://github.com/np2023v2/wp-blog-agent

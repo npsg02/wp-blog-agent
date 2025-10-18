@@ -65,7 +65,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Admin handler updated to enqueue multiple topics instead of synchronous generation
 
 ### Technical
-- Added `topic_text` column to queue table for storing series topic titles
+- Added `topic_text` column to queue table for storing series topic content (up to 500 characters)
 - Added `series_id` column to queue table for linking tasks to series
 - Modified `WP_Blog_Agent_Queue::enqueue()` to accept metadata parameter
 - Added `WP_Blog_Agent_Queue::generate_series_post()` for async series generation
