@@ -25,6 +25,7 @@ define('WP_BLOG_AGENT_PLUGIN_FILE', __FILE__);
 
 // Include required files
 require_once WP_BLOG_AGENT_PLUGIN_DIR . 'includes/class-wp-blog-agent-logger.php';
+require_once WP_BLOG_AGENT_PLUGIN_DIR . 'includes/class-wp-blog-agent-text-utils.php';
 require_once WP_BLOG_AGENT_PLUGIN_DIR . 'includes/class-wp-blog-agent-validator.php';
 require_once WP_BLOG_AGENT_PLUGIN_DIR . 'includes/class-wp-blog-agent-activator.php';
 require_once WP_BLOG_AGENT_PLUGIN_DIR . 'includes/class-wp-blog-agent-deactivator.php';
