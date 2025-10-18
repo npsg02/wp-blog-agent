@@ -129,7 +129,7 @@ class WP_Blog_Agent_Generator {
     /**
      * Parse content to extract title and body
      */
-    private function parse_content($content) {
+    public function parse_content($content) {
         // Try to extract title from h1 tag
         if (preg_match('/<h1[^>]*>(.*?)<\/h1>/is', $content, $matches)) {
             $title = strip_tags($matches[1]);
@@ -152,7 +152,7 @@ class WP_Blog_Agent_Generator {
     /**
      * Generate excerpt from content
      */
-    private function generate_excerpt($content) {
+    public function generate_excerpt($content) {
         $text = strip_tags($content);
         $text = preg_replace('/\s+/', ' ', $text);
         if (strlen($text) > 150) {
@@ -253,7 +253,7 @@ class WP_Blog_Agent_Generator {
     /**
      * Process image placeholders in content and replace with generated images
      */
-    private function process_image_placeholders($content, $topic) {
+    public function process_image_placeholders($content, $topic) {
         // Find all image placeholders in the format [IMAGE: description]
         preg_match_all('/\[IMAGE:\s*([^\]]+)\]/i', $content, $matches);
         

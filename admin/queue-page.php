@@ -100,7 +100,13 @@
                         <td><?php echo esc_html($item->id); ?></td>
                         <td>
                             <?php 
-                            if ($item->topic_id && $item->topic) {
+                            // Display topic_text if available (for series generation)
+                            if (!empty($item->topic_text)) {
+                                echo esc_html($item->topic_text);
+                                if (!empty($item->series_id)) {
+                                    echo ' <span style="color: #666; font-size: 11px;">(' . esc_html__('Series', 'wp-blog-agent') . ' #' . esc_html($item->series_id) . ')</span>';
+                                }
+                            } else if ($item->topic_id && $item->topic) {
                                 echo esc_html($item->topic);
                             } else if ($item->topic_id) {
                                 echo esc_html__('Topic #', 'wp-blog-agent') . esc_html($item->topic_id);

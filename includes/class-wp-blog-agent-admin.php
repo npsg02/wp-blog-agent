@@ -949,100 +949,81 @@ class WP_Blog_Agent_Admin {
         check_admin_referer('wp_blog_agent_generate_from_suggestion');
         
         $series_id = isset($_POST['series_id']) ? intval($_POST['series_id']) : 0;
-        $topic = isset($_POST['topic']) ? sanitize_text_field($_POST['topic']) : '';
+        $topics = isset($_POST['topics']) ? $_POST['topics'] : array();
         
-        if (empty($topic)) {
+        // Support both single topic (backward compatibility) and multiple topics
+        if (empty($topics) && !empty($_POST['topic'])) {
+            $topics = array(sanitize_text_field($_POST['topic']));
+        } elseif (is_array($topics)) {
+            $topics = array_map('sanitize_text_field', $topics);
+        }
+        
+        if (empty($topics)) {
             wp_redirect(admin_url('admin.php?page=wp-blog-agent-series&view=' . $series_id . '&error=empty_topic'));
             exit;
         }
         
-        WP_Blog_Agent_Logger::info('Generating post from series suggestion', array(
+        WP_Blog_Agent_Logger::info('Enqueueing series posts for generation', array(
             'series_id' => $series_id,
-            'topic' => $topic
+            'topics_count' => count($topics)
         ));
         
-        // Get AI provider
-        $provider = get_option('wp_blog_agent_ai_provider', 'openai');
+        $queued_count = 0;
+        $failed_count = 0;
         
-        // Generate content
-        if ($provider === 'gemini') {
-            $ai = new WP_Blog_Agent_Gemini();
-        } elseif ($provider === 'ollama') {
-            $ai = new WP_Blog_Agent_Ollama();
-        } else {
-            $ai = new WP_Blog_Agent_OpenAI();
-        }
-        
-        $content = $ai->generate_content($topic, array(), array());
-        
-        if (is_wp_error($content)) {
-            WP_Blog_Agent_Logger::error('Series content generation failed', array(
-                'error' => $content->get_error_message(),
-                'provider' => $provider,
-                'series_id' => $series_id
-            ));
-            wp_redirect(admin_url('admin.php?page=wp-blog-agent-series&view=' . $series_id . '&error=' . urlencode($content->get_error_message())));
-            exit;
-        }
-        
-        WP_Blog_Agent_Logger::info('Series content generated successfully', array('provider' => $provider));
-        
-        // Parse content to extract title and body
-        $parsed = $this->parse_generated_content($content);
-        
-        // Determine post status
-        $auto_publish = get_option('wp_blog_agent_auto_publish', 'yes');
-        $post_status = ($auto_publish === 'yes') ? 'publish' : 'draft';
-        
-        // Create the post
-        $post_data = array(
-            'post_title'   => $parsed['title'],
-            'post_content' => $parsed['content'],
-            'post_status'  => $post_status,
-            'post_author'  => 1,
-            'post_type'    => 'post',
-            'post_excerpt' => $this->generate_excerpt($parsed['content']),
-        );
-        
-        $post_id = wp_insert_post($post_data);
-        
-        if (is_wp_error($post_id)) {
-            WP_Blog_Agent_Logger::error('Series post creation failed', array('error' => $post_id->get_error_message()));
-            wp_redirect(admin_url('admin.php?page=wp-blog-agent-series&view=' . $series_id . '&error=' . urlencode($post_id->get_error_message())));
-            exit;
-        }
-        
-        WP_Blog_Agent_Logger::success('Series post created successfully', array(
-            'post_id' => $post_id,
-            'title' => $parsed['title'],
-            'status' => $post_status,
-            'series_id' => $series_id
-        ));
-        
-        // Add metadata
-        update_post_meta($post_id, '_wp_blog_agent_generated', true);
-        update_post_meta($post_id, '_wp_blog_agent_topic_id', 0); // 0 indicates series generation
-        update_post_meta($post_id, '_wp_blog_agent_keywords', '');
-        update_post_meta($post_id, '_wp_blog_agent_hashtags', '');
-        update_post_meta($post_id, '_wp_blog_agent_provider', $provider);
-        update_post_meta($post_id, '_wp_blog_agent_series_id', $series_id);
-        
-        // Add post to series
-        WP_Blog_Agent_Series::add_post_to_series($series_id, $post_id);
-        
-        // Auto-generate featured image if enabled
-        $auto_generate_image = get_option('wp_blog_agent_auto_generate_image', 'no');
-        if ($auto_generate_image === 'yes') {
-            $this->auto_generate_featured_image($post_id, $parsed['title'], $topic);
+        // Enqueue each topic as a separate task
+        foreach ($topics as $topic) {
+            if (empty($topic)) {
+                continue;
+            }
+            
+            $queue_id = WP_Blog_Agent_Queue::enqueue(
+                null, // topic_id is null for series generation
+                'series',
+                array(
+                    'topic_text' => $topic,
+                    'series_id' => $series_id
+                )
+            );
+            
+            if ($queue_id) {
+                $queued_count++;
+                WP_Blog_Agent_Logger::info('Series post enqueued', array(
+                    'queue_id' => $queue_id,
+                    'topic' => $topic,
+                    'series_id' => $series_id
+                ));
+            } else {
+                $failed_count++;
+                WP_Blog_Agent_Logger::error('Failed to enqueue series post', array(
+                    'topic' => $topic,
+                    'series_id' => $series_id
+                ));
+            }
         }
         
         // Auto-generate RankMath SEO meta if enabled
         $auto_generate_seo = get_option('wp_blog_agent_auto_generate_seo', 'no');
-        if ($auto_generate_seo === 'yes') {
+        if ($auto_generate_seo === 'yes' && !empty($post_id)) {
             $this->auto_generate_rankmath_seo($post_id);
         }
-        
-        wp_redirect(admin_url('admin.php?page=wp-blog-agent-series&view=' . $series_id . '&post_generated=' . $post_id));
+
+        if ($queued_count > 0) {
+            $message = sprintf(
+                _n(
+                    '%d post has been added to the generation queue.',
+                    '%d posts have been added to the generation queue.',
+                    $queued_count,
+                    'wp-blog-agent'
+                ),
+                $queued_count
+            );
+
+            wp_redirect(admin_url('admin.php?page=wp-blog-agent-series&view=' . $series_id . '&queued=' . $queued_count));
+        } else {
+            wp_redirect(admin_url('admin.php?page=wp-blog-agent-series&view=' . $series_id . '&error=queue_failed'));
+        }
+
         exit;
     }
     

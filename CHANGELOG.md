@@ -38,6 +38,41 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.3] - 2025-10-18
+
+### Added
+- **Batch Series Post Generation feature**
+- **Multiple topic selection using checkboxes in AI suggestions**
+- **Asynchronous batch post generation via queue system**
+- **Enhanced queue table with topic_text and series_id columns**
+- **Non-blocking UI for series post generation**
+- **Automatic database migration for existing installations**
+- **Queue display shows series generation tasks with topic text**
+- **Form validation for multiple selection (at least one required)**
+
+### Improved
+- Series generation now fully asynchronous (no UI blocking)
+- Users can select and generate 1-5 posts simultaneously
+- Enhanced queue metadata to support series-specific generation
+- Better user experience with immediate feedback on batch operations
+- Generator helper methods made public for better code reuse
+- Queue page displays more detailed information for series tasks
+
+### Changed
+- Series suggestions UI changed from radio buttons to checkboxes
+- "Generate Selected Topic" button renamed to "Generate Selected Topics"
+- Success messages updated to reflect batch operations
+- Admin handler updated to enqueue multiple topics instead of synchronous generation
+
+### Technical
+- Added `topic_text` column to queue table for storing series topic content (up to 500 characters)
+- Added `series_id` column to queue table for linking tasks to series
+- Modified `WP_Blog_Agent_Queue::enqueue()` to accept metadata parameter
+- Added `WP_Blog_Agent_Queue::generate_series_post()` for async series generation
+- Updated `process_queue()` to detect and handle series generation tasks
+- Added `wp_blog_agent_check_upgrade()` for automatic database migrations
+- Made Generator methods public: `parse_content()`, `generate_excerpt()`, `process_image_placeholders()`
+
 ## [1.0.2] - 2025-10-18
 
 ### Added
