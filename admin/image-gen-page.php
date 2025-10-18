@@ -38,7 +38,7 @@
         <div class="wp-blog-agent-generate-image">
             <h2><?php echo esc_html__('Generate Image', 'wp-blog-agent'); ?></h2>
             <p><?php echo esc_html__('Generate images using Gemini Imagen API and save them to your media library.', 'wp-blog-agent'); ?></p>
-            <form method="post" action="<?php echo admin_url('admin-post.php'); ?>">
+            <form id="wpbai-generate-image-form" method="post" action="<?php echo admin_url('admin-post.php'); ?>">
                 <input type="hidden" name="action" value="wp_blog_agent_generate_image">
                 <?php wp_nonce_field('wp_blog_agent_generate_image'); ?>
                 
@@ -103,7 +103,7 @@
                     </tr>
                 </table>
                 
-                <?php submit_button(__('Generate Image', 'wp-blog-agent'), 'primary', 'submit', true); ?>
+                <?php submit_button(__('Generate Image', 'wp-blog-agent'), 'primary', 'wpbai_generate_image_submit', true); ?>
             </form>
         </div>
         
@@ -212,3 +212,24 @@
     line-height: 1.4;
 }
 </style>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const form = document.getElementById('wpbai-generate-image-form');
+    if (form) {
+        // Prevent form submission on Enter key press in input fields (but allow in textarea)
+        form.addEventListener('keydown', e => {
+            if (e.key === 'Enter' && e.target.tagName !== 'TEXTAREA') {
+                e.preventDefault();
+            }
+        });
+        
+        // Only allow form submission when the proper submit button is clicked
+        form.addEventListener('submit', e => {
+            if (!e.submitter || e.submitter.name !== 'wpbai_generate_image_submit') {
+                e.preventDefault();
+            }
+        });
+    }
+});
+</script>
