@@ -45,6 +45,20 @@ register_activation_hook(__FILE__, array('WP_Blog_Agent_Activator', 'activate'))
 // Deactivation hook
 register_deactivation_hook(__FILE__, array('WP_Blog_Agent_Deactivator', 'deactivate'));
 
+// Check for database upgrades
+function wp_blog_agent_check_upgrade() {
+    $current_version = get_option('wp_blog_agent_db_version', '0');
+    $plugin_version = WP_BLOG_AGENT_VERSION;
+    
+    // If versions don't match, run upgrade
+    if (version_compare($current_version, $plugin_version, '<')) {
+        WP_Blog_Agent_Activator::activate();
+        update_option('wp_blog_agent_db_version', $plugin_version);
+        WP_Blog_Agent_Logger::info('Database upgraded to version ' . $plugin_version);
+    }
+}
+add_action('admin_init', 'wp_blog_agent_check_upgrade');
+
 // Initialize the plugin
 function wp_blog_agent_init() {
     // Initialize logger
