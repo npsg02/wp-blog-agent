@@ -5,6 +5,7 @@ A powerful WordPress plugin that automates blog post generation using OpenAI GPT
 ## Features
 
 - **AI-Powered Content Generation**: Choose between OpenAI (GPT), Google Gemini, or Ollama (local) for content creation
+- **Post Series Management**: Create series of related posts and get AI-powered topic suggestions for continuation
 - **RankMath SEO Integration**: Automatically generate SEO meta descriptions and focus keywords for RankMath SEO plugin
 - **Task Queue System**: Asynchronous generation with automatic retry on failure (up to 3 attempts)
 - **AI Image Generation**: Generate images using Gemini Imagen API and save to WordPress media library
@@ -90,7 +91,32 @@ Navigate to **Blog Agent** → **Topics** to:
 - **Keywords**: wordpress, SEO, search engine optimization, ranking, plugins (optional)
 - **Hashtags**: #WordPress, #SEO, #WebDev, #BlogTips (optional)
 
-### 4. View Generated Posts
+### 4. Manage Post Series
+
+Navigate to **Blog Agent** → **Series** to:
+
+- **Create Series**: Create a new post series with a name and description
+- **View Series**: See all your post series and their statistics
+- **Add Posts to Series**: Add existing blog posts to a series
+- **AI Topic Suggestions**: Get AI-powered topic suggestions for the next post in a series
+  - Click "Get AI Suggestions" on any series with at least one post
+  - AI analyzes existing post titles in the series
+  - Suggests relevant topics that follow the theme
+  - Select a suggestion and click "Generate Selected Topic"
+  - The new post is automatically added to the series
+- **Manage Series Posts**: View, reorder, or remove posts from a series
+
+**Example Workflow:**
+1. Create a series called "WordPress Security Guide"
+2. Add your first post about "WordPress Security Basics"
+3. Click "Get AI Suggestions" - AI might suggest topics like:
+   - "Advanced WordPress Security Plugins"
+   - "Implementing Two-Factor Authentication in WordPress"
+   - "WordPress Security Best Practices for 2024"
+4. Select a suggestion and generate the next post in the series
+5. Repeat the process to continue building your series
+
+### 5. View Generated Posts
 
 Navigate to **Blog Agent** → **Generated Posts** to:
 
@@ -101,7 +127,7 @@ Navigate to **Blog Agent** → **Generated Posts** to:
 - **Generate SEO metadata** for posts with one click
 - **Generate featured images** for posts with AI
 
-### 5. RankMath SEO Integration
+### 6. RankMath SEO Integration
 
 The plugin includes automatic SEO optimization for the RankMath SEO plugin:
 
@@ -119,7 +145,7 @@ The plugin includes automatic SEO optimization for the RankMath SEO plugin:
 
 See [RANKMATH_SEO_FEATURE.md](RANKMATH_SEO_FEATURE.md) for detailed documentation.
 
-### 6. Monitor Queue
+### 7. Monitor Queue
 
 Navigate to **Blog Agent** → **Queue** to:
 
@@ -129,7 +155,7 @@ Navigate to **Blog Agent** → **Queue** to:
 - View error messages for failed tasks
 - Cleanup old completed/failed tasks
 
-### 7. Monitor Activity
+### 8. Monitor Activity
 
 Navigate to **Blog Agent** → **Logs** to:
 
@@ -139,7 +165,7 @@ Navigate to **Blog Agent** → **Logs** to:
 - Debug issues
 - Clear old logs
 
-### 8. Generate Images
+### 9. Generate Images
 
 Navigate to **Blog Agent** → **Image Generation** to:
 
@@ -179,6 +205,25 @@ Navigate to **Blog Agent** → **Image Generation** to:
 4. A task will be added to the queue for that specific topic
 5. Monitor progress in **Blog Agent** → **Queue**
 
+### Series-Based Generation
+
+1. Go to **Blog Agent** → **Series**
+2. Create a new series or select an existing one
+3. Add at least one post to the series (or generate one manually)
+4. Click **Get AI Suggestions** to analyze existing posts
+5. AI will suggest relevant topics for continuation
+6. Select a suggested topic and click **Generate Selected Topic**
+7. The new post will be created and automatically added to the series
+8. Repeat to continue building your content series
+
+**Example Series Workflow:**
+- Create a series: "Complete Guide to WordPress Security"
+- Add/generate first post: "WordPress Security Basics"
+- Get suggestions: AI suggests "WordPress Plugin Security", "Hardening wp-config.php", etc.
+- Select and generate: Choose "WordPress Plugin Security"
+- New post is created and added to the series automatically
+- Continue the process to build a comprehensive content series
+
 ### Image Generation for Blog Posts
 
 1. Go to **Blog Agent** → **Image Generation**
@@ -217,6 +262,8 @@ The plugin creates the following custom tables:
 
 - `wp_blog_agent_topics`: Stores topics, keywords, and hashtags
 - `wp_blog_agent_queue`: Stores generation task queue with status tracking
+- `wp_blog_agent_series`: Stores post series information (name, description)
+- `wp_blog_agent_series_posts`: Stores relationships between series and posts
 
 ## File Storage
 
@@ -277,8 +324,11 @@ The plugin uses WordPress Cron to schedule automated generation:
 ```
 wp-blog-agent/
 ├── admin/
+│   ├── image-gen-page.php
 │   ├── logs-page.php
 │   ├── posts-page.php
+│   ├── queue-page.php
+│   ├── series-page.php
 │   ├── settings-page.php
 │   └── topics-page.php
 ├── assets/
@@ -292,9 +342,14 @@ wp-blog-agent/
 │   ├── class-wp-blog-agent-deactivator.php
 │   ├── class-wp-blog-agent-gemini.php
 │   ├── class-wp-blog-agent-generator.php
+│   ├── class-wp-blog-agent-image-generator.php
 │   ├── class-wp-blog-agent-logger.php
+│   ├── class-wp-blog-agent-ollama.php
 │   ├── class-wp-blog-agent-openai.php
+│   ├── class-wp-blog-agent-queue.php
+│   ├── class-wp-blog-agent-rankmath.php
 │   ├── class-wp-blog-agent-scheduler.php
+│   ├── class-wp-blog-agent-series.php
 │   └── class-wp-blog-agent-validator.php
 ├── .gitignore
 ├── ARCHITECTURE.md

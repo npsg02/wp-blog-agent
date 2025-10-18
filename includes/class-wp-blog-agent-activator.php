@@ -43,9 +43,37 @@ class WP_Blog_Agent_Activator {
             KEY created_at (created_at)
         ) $charset_collate;";
         
+        // Create series table
+        $series_table = $wpdb->prefix . 'blog_agent_series';
+        $series_sql = "CREATE TABLE $series_table (
+            id mediumint(9) NOT NULL AUTO_INCREMENT,
+            name varchar(255) NOT NULL,
+            description text DEFAULT NULL,
+            status varchar(20) DEFAULT 'active',
+            created_at datetime DEFAULT CURRENT_TIMESTAMP,
+            updated_at datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            PRIMARY KEY (id)
+        ) $charset_collate;";
+        
+        // Create series-posts relationship table
+        $series_posts_table = $wpdb->prefix . 'blog_agent_series_posts';
+        $series_posts_sql = "CREATE TABLE $series_posts_table (
+            id mediumint(9) NOT NULL AUTO_INCREMENT,
+            series_id mediumint(9) NOT NULL,
+            post_id bigint(20) NOT NULL,
+            position int DEFAULT 0,
+            created_at datetime DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY (id),
+            KEY series_id (series_id),
+            KEY post_id (post_id),
+            UNIQUE KEY series_post (series_id, post_id)
+        ) $charset_collate;";
+        
         require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
         dbDelta($topics_sql);
         dbDelta($queue_sql);
+        dbDelta($series_sql);
+        dbDelta($series_posts_sql);
         
         // Set default options
         if (!get_option('wp_blog_agent_ai_provider')) {
