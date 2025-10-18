@@ -28,16 +28,20 @@ class WP_Blog_Agent_OpenAI {
         
         $prompt = $this->build_prompt($topic, $keywords, $hashtags);
         
+        // Clean prompt for JSON encoding
+        $clean_prompt = WP_Blog_Agent_Text_Utils::clean_for_json($prompt);
+        $clean_system_prompt = WP_Blog_Agent_Text_Utils::clean_for_json($this->system_prompt);
+        
         $request_body = array(
             'model' => $this->model,
             'messages' => array(
                 array(
                     'role' => 'system',
-                    'content' => $this->system_prompt
+                    'content' => $clean_system_prompt
                 ),
                 array(
                     'role' => 'user',
-                    'content' => $prompt
+                    'content' => $clean_prompt
                 )
             ),
             'temperature' => 0.7,
@@ -55,12 +59,20 @@ class WP_Blog_Agent_OpenAI {
             'prompt_length' => strlen($prompt)
         ));
         
+        // Use safe JSON encoding with error logging
+        $json_body = WP_Blog_Agent_Text_Utils::safe_json_encode($request_body);
+        
+        if ($json_body === false) {
+            WP_Blog_Agent_Logger::error('OpenAI JSON encoding failed');
+            return new WP_Error('json_encode_failed', 'Failed to encode request body for OpenAI API.');
+        }
+        
         $response = wp_remote_post($this->api_url, array(
             'headers' => array(
                 'Content-Type' => 'application/json',
                 'Authorization' => 'Bearer ' . $this->api_key,
             ),
-            'body' => json_encode($request_body),
+            'body' => $json_body,
             'timeout' => 60,
         ));
         
@@ -190,6 +202,9 @@ class WP_Blog_Agent_OpenAI {
             return new WP_Error('no_api_key', 'OpenAI API key is not configured.');
         }
         
+        // Clean prompt for JSON encoding
+        $clean_prompt = WP_Blog_Agent_Text_Utils::clean_for_json($prompt);
+        
         $request_body = array(
             'model' => $this->model,
             'messages' => array(
@@ -199,18 +214,26 @@ class WP_Blog_Agent_OpenAI {
                 ),
                 array(
                     'role' => 'user',
-                    'content' => $prompt
+                    'content' => $clean_prompt
                 )
             ),
             'temperature' => 0.8,
         );
+        
+        // Use safe JSON encoding with error logging
+        $json_body = WP_Blog_Agent_Text_Utils::safe_json_encode($request_body);
+        
+        if ($json_body === false) {
+            WP_Blog_Agent_Logger::error('OpenAI JSON encoding failed in generate_topic_suggestions');
+            return new WP_Error('json_encode_failed', 'Failed to encode request body for OpenAI API.');
+        }
         
         $response = wp_remote_post($this->api_url, array(
             'headers' => array(
                 'Content-Type' => 'application/json',
                 'Authorization' => 'Bearer ' . $this->api_key,
             ),
-            'body' => json_encode($request_body),
+            'body' => $json_body,
             'timeout' => 60,
         ));
         

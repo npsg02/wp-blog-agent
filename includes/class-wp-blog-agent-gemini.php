@@ -29,6 +29,9 @@ class WP_Blog_Agent_Gemini {
         // Prepend system prompt to the user prompt for Gemini
         $full_prompt = $this->system_prompt . "\n\n" . $prompt;
         
+        // Clean prompt for JSON encoding
+        $clean_full_prompt = WP_Blog_Agent_Text_Utils::clean_for_json($full_prompt);
+        
         $api_url = 'https://generativelanguage.googleapis.com/v1/models/' . $this->model . ':generateContent';
         $url = $api_url . '?key=' . $this->api_key;
         
@@ -45,7 +48,7 @@ class WP_Blog_Agent_Gemini {
             'contents' => array(
                 array(
                     'parts' => array(
-                        array('text' => $full_prompt)
+                        array('text' => $clean_full_prompt)
                     )
                 )
             ),
@@ -59,11 +62,19 @@ class WP_Blog_Agent_Gemini {
             'prompt_length' => strlen($prompt)
         ));
         
+        // Use safe JSON encoding with error logging
+        $json_body = WP_Blog_Agent_Text_Utils::safe_json_encode($request_body);
+        
+        if ($json_body === false) {
+            WP_Blog_Agent_Logger::error('Gemini JSON encoding failed');
+            return new WP_Error('json_encode_failed', 'Failed to encode request body for Gemini API.');
+        }
+        
         $response = wp_remote_post($url, array(
             'headers' => array(
                 'Content-Type' => 'application/json',
             ),
-            'body' => json_encode($request_body),
+            'body' => $json_body,
             'timeout' => 60,
         ));
         
@@ -196,6 +207,9 @@ class WP_Blog_Agent_Gemini {
         $system_prompt = 'You are a creative content strategist who suggests relevant topics based on existing content.';
         $full_prompt = $system_prompt . "\n\n" . $prompt;
         
+        // Clean prompt for JSON encoding
+        $clean_full_prompt = WP_Blog_Agent_Text_Utils::clean_for_json($full_prompt);
+        
         $api_url = 'https://generativelanguage.googleapis.com/v1/models/' . $this->model . ':generateContent';
         $url = $api_url . '?key=' . $this->api_key;
         
@@ -203,7 +217,7 @@ class WP_Blog_Agent_Gemini {
             'contents' => array(
                 array(
                     'parts' => array(
-                        array('text' => $full_prompt)
+                        array('text' => $clean_full_prompt)
                     )
                 )
             ),
@@ -212,11 +226,19 @@ class WP_Blog_Agent_Gemini {
             )
         );
         
+        // Use safe JSON encoding with error logging
+        $json_body = WP_Blog_Agent_Text_Utils::safe_json_encode($request_body);
+        
+        if ($json_body === false) {
+            WP_Blog_Agent_Logger::error('Gemini JSON encoding failed in generate_topic_suggestions');
+            return new WP_Error('json_encode_failed', 'Failed to encode request body for Gemini API.');
+        }
+        
         $response = wp_remote_post($url, array(
             'headers' => array(
                 'Content-Type' => 'application/json',
             ),
-            'body' => json_encode($request_body),
+            'body' => $json_body,
             'timeout' => 60,
         ));
         
