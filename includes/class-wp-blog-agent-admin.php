@@ -1039,8 +1039,7 @@ class WP_Blog_Agent_Admin {
         // Auto-generate RankMath SEO meta if enabled
         $auto_generate_seo = get_option('wp_blog_agent_auto_generate_seo', 'no');
         if ($auto_generate_seo === 'yes') {
-            $rankmath = new WP_Blog_Agent_RankMath();
-            $rankmath->generate_seo_meta($post_id);
+            $this->auto_generate_rankmath_seo($post_id);
         }
         
         wp_redirect(admin_url('admin.php?page=wp-blog-agent-series&view=' . $series_id . '&post_generated=' . $post_id));
