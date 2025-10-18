@@ -38,6 +38,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.2] - 2025-10-18
+
 ### Added
 - Custom OpenAI base URL configuration for OpenAI-compatible API services
 - Quick manual topic generation without saving to database

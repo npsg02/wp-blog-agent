@@ -3,7 +3,7 @@
  * Plugin Name: WP Blog Agent
  * Plugin URI: https://github.com/np2023v2/wp-blog-agent
  * Description: Automated blog post generation using OpenAI or Gemini API with hashtags, keywords, SEO optimization, and scheduled publishing.
- * Version: 1.0.0
+ * Version: 1.0.2
  * Author: NP2023
  * Author URI: https://github.com/np2023v2
  * License: GPL v2 or later
@@ -18,7 +18,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Define plugin constants
-define('WP_BLOG_AGENT_VERSION', '1.0.1');
+define('WP_BLOG_AGENT_VERSION', '1.0.2');
 define('WP_BLOG_AGENT_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('WP_BLOG_AGENT_PLUGIN_URL', plugin_dir_url(__FILE__));
 define('WP_BLOG_AGENT_PLUGIN_FILE', __FILE__);
