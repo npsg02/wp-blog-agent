@@ -1002,6 +1002,12 @@ class WP_Blog_Agent_Admin {
             }
         }
         
+        // Auto-generate RankMath SEO meta if enabled
+        $auto_generate_seo = get_option('wp_blog_agent_auto_generate_seo', 'no');
+        if ($auto_generate_seo === 'yes' && !empty($post_id)) {
+            $this->auto_generate_rankmath_seo($post_id);
+        }
+
         if ($queued_count > 0) {
             $message = sprintf(
                 _n(
@@ -1012,11 +1018,12 @@ class WP_Blog_Agent_Admin {
                 ),
                 $queued_count
             );
-            
+
             wp_redirect(admin_url('admin.php?page=wp-blog-agent-series&view=' . $series_id . '&queued=' . $queued_count));
         } else {
             wp_redirect(admin_url('admin.php?page=wp-blog-agent-series&view=' . $series_id . '&error=queue_failed'));
         }
+
         exit;
     }
     
