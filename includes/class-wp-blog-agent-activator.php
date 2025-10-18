@@ -30,6 +30,8 @@ class WP_Blog_Agent_Activator {
         $queue_sql = "CREATE TABLE $queue_table (
             id mediumint(9) NOT NULL AUTO_INCREMENT,
             topic_id mediumint(9) DEFAULT NULL,
+            topic_text varchar(500) DEFAULT NULL,
+            series_id mediumint(9) DEFAULT NULL,
             status varchar(20) DEFAULT 'pending',
             trigger varchar(50) DEFAULT 'manual',
             post_id bigint(20) DEFAULT NULL,

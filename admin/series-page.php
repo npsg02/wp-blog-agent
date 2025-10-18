@@ -17,8 +17,18 @@
         echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__('Post removed from series!', 'wp-blog-agent') . '</p></div>';
     }
     if (isset($_GET['queued'])) {
-        $queue_id = intval($_GET['queued']);
-        echo '<div class="notice notice-success is-dismissible"><p>' . sprintf(esc_html__('Topic added to generation queue! Queue ID: %d', 'wp-blog-agent'), $queue_id) . ' <a href="' . admin_url('admin.php?page=wp-blog-agent-queue') . '">' . esc_html__('View Queue', 'wp-blog-agent') . '</a></p></div>';
+        $queue_count = intval($_GET['queued']);
+        echo '<div class="notice notice-success is-dismissible"><p>' . 
+             sprintf(
+                 _n(
+                     '%d topic has been added to the generation queue! Posts will be generated asynchronously.',
+                     '%d topics have been added to the generation queue! Posts will be generated asynchronously.',
+                     $queue_count,
+                     'wp-blog-agent'
+                 ),
+                 $queue_count
+             ) . 
+             ' <a href="' . admin_url('admin.php?page=wp-blog-agent-queue') . '">' . esc_html__('View Queue', 'wp-blog-agent') . '</a></p></div>';
     }
     if (isset($_GET['post_generated'])) {
         $post_id = intval($_GET['post_generated']);
@@ -232,18 +242,29 @@
                             response.data.suggestions.forEach(function(suggestion, index) {
                                 html += '<li style="margin: 10px 0; padding: 10px; border: 1px solid #ddd; background: #f9f9f9;">';
                                 html += '<label style="display: flex; align-items: center; cursor: pointer;">';
-                                html += '<input type="radio" name="topic" value="' + suggestion + '" style="margin-right: 10px;" required> ';
+                                html += '<input type="checkbox" name="topics[]" value="' + suggestion + '" style="margin-right: 10px;"> ';
                                 html += '<span>' + suggestion + '</span>';
                                 html += '</label>';
                                 html += '</li>';
                             });
                             
                             html += '</ul>';
-                            html += '<button type="submit" class="button button-primary"><?php echo esc_js(__('Generate Selected Topic', 'wp-blog-agent')); ?></button>';
+                            html += '<p style="margin-top: 10px; color: #666; font-style: italic;"><?php echo esc_js(__('Select one or more topics to generate posts simultaneously.', 'wp-blog-agent')); ?></p>';
+                            html += '<button type="submit" class="button button-primary"><?php echo esc_js(__('Generate Selected Topics', 'wp-blog-agent')); ?></button>';
                             html += '</form>';
                             html += '</div>';
                             
                             container.html(html);
+                            
+                            // Add form validation
+                            $('#suggestions-list form').on('submit', function(e) {
+                                var checkedCount = $(this).find('input[type="checkbox"]:checked').length;
+                                if (checkedCount === 0) {
+                                    e.preventDefault();
+                                    alert('<?php echo esc_js(__('Please select at least one topic to generate.', 'wp-blog-agent')); ?>');
+                                    return false;
+                                }
+                            });
                         } else {
                             var errorMsg = response.data && response.data.message ? response.data.message : '<?php echo esc_js(__('Failed to generate suggestions', 'wp-blog-agent')); ?>';
                             container.html('<p style="color: red;">' + errorMsg + '</p>');

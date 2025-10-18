@@ -30,6 +30,8 @@ class WP_Blog_Agent_Queue {
         $sql = "CREATE TABLE {$table_name} (
             id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
             topic_id bigint(20) unsigned DEFAULT NULL,
+            topic_text varchar(500) DEFAULT NULL,
+            series_id bigint(20) unsigned DEFAULT NULL,
             status varchar(20) NOT NULL DEFAULT 'pending',
             trigger_source varchar(50) NOT NULL DEFAULT 'manual',
             post_id bigint(20) unsigned DEFAULT NULL,
@@ -60,7 +62,7 @@ class WP_Blog_Agent_Queue {
         return true;
     }
     
-   public static function enqueue($topic_id = null, $trigger = 'manual') {
+   public static function enqueue($topic_id = null, $trigger = 'manual', $metadata = array()) {
         global $wpdb;
 
         if (!self::ensure_table_exists()) {
@@ -73,17 +75,28 @@ class WP_Blog_Agent_Queue {
 
         $table_name = self::get_table_name();
 
-        $result = $wpdb->insert(
-            $table_name,
-            [
-                'topic_id' => $topic_id,
-                'status' => 'pending',
-                'trigger_source' => $trigger,
-                'created_at' => current_time('mysql'),
-                'attempts' => 0
-            ],
-            ['%d', '%s', '%s', '%s', '%d']
-        );
+        $data = [
+            'topic_id' => $topic_id,
+            'status' => 'pending',
+            'trigger_source' => $trigger,
+            'created_at' => current_time('mysql'),
+            'attempts' => 0
+        ];
+        
+        $format = ['%d', '%s', '%s', '%s', '%d'];
+        
+        // Add optional metadata fields
+        if (isset($metadata['topic_text'])) {
+            $data['topic_text'] = sanitize_text_field($metadata['topic_text']);
+            $format[] = '%s';
+        }
+        
+        if (isset($metadata['series_id'])) {
+            $data['series_id'] = intval($metadata['series_id']);
+            $format[] = '%d';
+        }
+
+        $result = $wpdb->insert($table_name, $data, $format);
 
         if ($result === false) {
             WP_Blog_Agent_Logger::error('Failed to enqueue generation task', [
@@ -256,13 +269,22 @@ class WP_Blog_Agent_Queue {
         WP_Blog_Agent_Logger::info('Processing task', [
             'queue_id' => $task->id,
             'topic_id' => $task->topic_id,
+            'topic_text' => $task->topic_text ?? null,
+            'series_id' => $task->series_id ?? null,
             'trigger' => $task->trigger_source ?? 'manual'
         ]);
 
         self::mark_processing($task->id);
 
-        $generator = new WP_Blog_Agent_Generator();
-        $result = $generator->generate_post($task->topic_id);
+        // Check if this is a series generation task (has topic_text and series_id)
+        if (!empty($task->topic_text) && !empty($task->series_id)) {
+            // Series generation
+            $result = self::generate_series_post($task);
+        } else {
+            // Regular topic-based generation
+            $generator = new WP_Blog_Agent_Generator();
+            $result = $generator->generate_post($task->topic_id);
+        }
 
         if (is_wp_error($result)) {
             self::mark_failed($task->id, $result->get_error_message());
@@ -274,6 +296,150 @@ class WP_Blog_Agent_Queue {
         if ($next_task && !wp_next_scheduled('wp_blog_agent_process_queue')) {
             wp_schedule_single_event(time() + 10, 'wp_blog_agent_process_queue');
         }
+    }
+    
+    /**
+     * Generate a post from a series suggestion
+     * 
+     * @param object $task Queue task object with topic_text and series_id
+     * @return int|WP_Error Post ID on success, WP_Error on failure
+     */
+    private static function generate_series_post($task) {
+        $topic = $task->topic_text;
+        $series_id = $task->series_id;
+        
+        WP_Blog_Agent_Logger::info('Generating post from series suggestion', array(
+            'series_id' => $series_id,
+            'topic' => $topic
+        ));
+        
+        // Get AI provider
+        $provider = get_option('wp_blog_agent_ai_provider', 'openai');
+        
+        // Generate content
+        if ($provider === 'gemini') {
+            $ai = new WP_Blog_Agent_Gemini();
+        } elseif ($provider === 'ollama') {
+            $ai = new WP_Blog_Agent_Ollama();
+        } else {
+            $ai = new WP_Blog_Agent_OpenAI();
+        }
+        
+        $content = $ai->generate_content($topic, array(), array());
+        
+        if (is_wp_error($content)) {
+            WP_Blog_Agent_Logger::error('Series content generation failed', array(
+                'error' => $content->get_error_message(),
+                'provider' => $provider,
+                'series_id' => $series_id
+            ));
+            return $content;
+        }
+        
+        WP_Blog_Agent_Logger::info('Series content generated successfully', array('provider' => $provider));
+        
+        // Parse content to extract title and body using Generator's method
+        $generator = new WP_Blog_Agent_Generator();
+        $parsed = $generator->parse_content($content);
+        
+        // Process inline images if enabled
+        $auto_generate_inline_images = get_option('wp_blog_agent_auto_generate_inline_images', 'no');
+        if ($auto_generate_inline_images === 'yes') {
+            WP_Blog_Agent_Logger::info('Processing inline image placeholders for series post');
+            $parsed['content'] = $generator->process_image_placeholders($parsed['content'], $topic);
+        }
+        
+        // Determine post status
+        $auto_publish = get_option('wp_blog_agent_auto_publish', 'yes');
+        $post_status = ($auto_publish === 'yes') ? 'publish' : 'draft';
+        
+        // Create the post
+        $post_data = array(
+            'post_title'   => $parsed['title'],
+            'post_content' => $parsed['content'],
+            'post_status'  => $post_status,
+            'post_author'  => 1,
+            'post_type'    => 'post',
+            'post_excerpt' => $generator->generate_excerpt($parsed['content']),
+        );
+        
+        $post_id = wp_insert_post($post_data);
+        
+        if (is_wp_error($post_id)) {
+            WP_Blog_Agent_Logger::error('Series post creation failed', array('error' => $post_id->get_error_message()));
+            return $post_id;
+        }
+        
+        WP_Blog_Agent_Logger::success('Series post created successfully', array(
+            'post_id' => $post_id,
+            'title' => $parsed['title'],
+            'status' => $post_status,
+            'series_id' => $series_id
+        ));
+        
+        // Add metadata
+        update_post_meta($post_id, '_wp_blog_agent_generated', true);
+        update_post_meta($post_id, '_wp_blog_agent_topic_id', 0); // 0 indicates series generation
+        update_post_meta($post_id, '_wp_blog_agent_keywords', '');
+        update_post_meta($post_id, '_wp_blog_agent_hashtags', '');
+        update_post_meta($post_id, '_wp_blog_agent_provider', $provider);
+        update_post_meta($post_id, '_wp_blog_agent_series_id', $series_id);
+        
+        // Add post to series
+        WP_Blog_Agent_Series::add_post_to_series($series_id, $post_id);
+        
+        // Auto-generate featured image if enabled
+        $auto_generate_image = get_option('wp_blog_agent_auto_generate_image', 'no');
+        if ($auto_generate_image === 'yes') {
+            try {
+                $prompt = sprintf(
+                    'Create a professional, eye-catching blog header image for a blog post titled "%s" about %s.',
+                    $parsed['title'],
+                    $topic
+                );
+                
+                WP_Blog_Agent_Logger::info('Auto-generating featured image for series post', array(
+                    'post_id' => $post_id,
+                    'prompt' => substr($prompt, 0, 100)
+                ));
+                
+                $image_generator = new WP_Blog_Agent_Image_Generator();
+                $params = array(
+                    'aspectRatio' => '16:9',
+                    'imageSize' => '1K',
+                    'sampleCount' => 1,
+                    'outputMimeType' => 'image/jpeg',
+                    'personGeneration' => 'ALLOW_ALL'
+                );
+                
+                $attachment_id = $image_generator->generate_and_save($prompt, $post_id, $params);
+                
+                if (!is_wp_error($attachment_id)) {
+                    update_post_meta($attachment_id, '_wp_blog_agent_generated_image', true);
+                    update_post_meta($attachment_id, '_wp_blog_agent_image_prompt', $prompt);
+                    update_post_meta($attachment_id, '_wp_blog_agent_attached_post', $post_id);
+                    update_post_meta($attachment_id, '_wp_blog_agent_auto_generated', true);
+                    
+                    WP_Blog_Agent_Logger::success('Featured image auto-generated for series post', array(
+                        'post_id' => $post_id,
+                        'attachment_id' => $attachment_id
+                    ));
+                }
+            } catch (Exception $e) {
+                WP_Blog_Agent_Logger::error('Exception during auto-image generation for series post', array(
+                    'error' => $e->getMessage()
+                ));
+            }
+        }
+        
+        // Auto-generate RankMath SEO meta if enabled
+        $auto_generate_seo = get_option('wp_blog_agent_auto_generate_seo', 'no');
+        if ($auto_generate_seo === 'yes') {
+            $rankmath = new WP_Blog_Agent_RankMath();
+            $rankmath->generate_seo_meta($post_id);
+        }
+        
+        return $post_id;
     }
     
     /**
