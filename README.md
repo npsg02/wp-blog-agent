@@ -11,6 +11,7 @@ A powerful WordPress plugin that automates blog post generation using OpenAI GPT
 - **AI Image Generation**: Generate images using Gemini Imagen API and save to WordPress media library
 - **Inline Image Generation**: Automatically add illustrative images throughout blog post content with AI-generated placeholders
 - **Manual SEO & Image Generation**: Generate SEO metadata and featured images for existing posts with one click
+- **Health Check Module**: Comprehensive system diagnostics for database, API, queue, version, and image generation
 - **Custom OpenAI Base URL**: Configure custom API endpoints for OpenAI-compatible services (supports any OpenAI-compatible API)
 - **Quick Manual Generation**: Generate posts immediately without saving topics to the database
 - **Flexible Content Generation**: Generate posts from title only, or optionally include keywords and hashtags
@@ -261,6 +262,25 @@ Navigate to **Blog Agent** → **Image Generation** to:
 
 **Note**: Image generation uses the same Gemini API key configured in Settings.
 
+### 10. Monitor System Health
+
+Navigate to **Blog Agent** → **Health Check** to:
+
+- **Check Database Health**: Verify all tables exist and have correct schema
+- **Test LLM APIs**: Test connectivity to OpenAI and Gemini with response time tracking
+- **Monitor Queue**: View queue statistics, failure rates, and stuck tasks
+- **Verify Version**: Check plugin, database, WordPress, and PHP versions
+- **Validate Image Generation**: Ensure image generation API is configured correctly
+- **View System Info**: See server, MySQL, and PHP configuration details
+
+The health check provides:
+- Color-coded status indicators (healthy, warning, error, not configured)
+- Detailed diagnostics for each component
+- Actionable recommendations for fixing issues
+- One-click refresh for updated status
+
+See [HEALTH_CHECK_FEATURE.md](HEALTH_CHECK_FEATURE.md) for detailed documentation.
+
 ## How It Works
 
 1. **Task Enqueueing**: When triggered (manually or scheduled), a task is added to the queue
@@ -315,24 +335,36 @@ The plugin uses WordPress Cron to schedule automated generation:
 
 ## Troubleshooting
 
+### Health Check First
+
+**Always start with the Health Check page** (`Blog Agent → Health Check`) when troubleshooting:
+- Identifies issues across all components
+- Provides actionable recommendations
+- Tests API connectivity with response times
+- Validates database integrity
+- Monitors queue health and statistics
+
 ### Posts Not Being Generated
 
-1. Check that you have entered a valid API key
-2. Verify that scheduling is enabled
-3. Ensure you have at least one active topic
-4. Check WordPress error logs for any issues
+1. Run Health Check to identify issues
+2. Check that you have entered a valid API key
+3. Verify that scheduling is enabled
+4. Ensure you have at least one active topic
+5. Check WordPress error logs for any issues
 
 ### API Errors
 
 - **OpenAI**: Verify your API key has sufficient credits
 - **Gemini**: Ensure your API key is valid and has proper permissions
 - Check your internet connection
+- Use Health Check to test API connectivity
 
 ### Scheduling Issues
 
 - Verify that WordPress Cron is working on your server
 - Some hosting providers disable WP-Cron; you may need to set up a system cron job
 - Check the Logs page for scheduling errors
+- Use Health Check to verify cron job status
 
 ### Check Logs
 
@@ -348,6 +380,7 @@ The plugin uses WordPress Cron to schedule automated generation:
 ```
 wp-blog-agent/
 ├── admin/
+│   ├── health-check-page.php
 │   ├── image-gen-page.php
 │   ├── logs-page.php
 │   ├── posts-page.php
@@ -366,6 +399,7 @@ wp-blog-agent/
 │   ├── class-wp-blog-agent-deactivator.php
 │   ├── class-wp-blog-agent-gemini.php
 │   ├── class-wp-blog-agent-generator.php
+│   ├── class-wp-blog-agent-health-check.php
 │   ├── class-wp-blog-agent-image-generator.php
 │   ├── class-wp-blog-agent-logger.php
 │   ├── class-wp-blog-agent-ollama.php
