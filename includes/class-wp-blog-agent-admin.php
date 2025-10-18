@@ -644,12 +644,31 @@ class WP_Blog_Agent_Admin {
             ));
             
             $rankmath = new WP_Blog_Agent_RankMath();
-            $results = $rankmath->generate_all_seo_meta($post_id);
+            
+            // Generate description
+            $description = $rankmath->generate_seo_description($post_id);
+            if (is_wp_error($description)) {
+                WP_Blog_Agent_Logger::error('Failed to auto-generate SEO description', array(
+                    'post_id' => $post_id,
+                    'error' => $description->get_error_message()
+                ));
+                return false;
+            }
+            
+            // Generate keyword
+            $keyword = $rankmath->generate_focus_keyword($post_id);
+            if (is_wp_error($keyword)) {
+                WP_Blog_Agent_Logger::error('Failed to auto-generate focus keyword', array(
+                    'post_id' => $post_id,
+                    'error' => $keyword->get_error_message()
+                ));
+                return false;
+            }
             
             WP_Blog_Agent_Logger::success('RankMath SEO meta generated', array(
                 'post_id' => $post_id,
-                'description' => $results['description'],
-                'keyword' => $results['keyword']
+                'description' => $description,
+                'keyword' => $keyword
             ));
             
             return true;
@@ -682,14 +701,35 @@ class WP_Blog_Agent_Admin {
         
         WP_Blog_Agent_Logger::info('Manual SEO generation triggered', array('post_id' => $post_id));
         
-        $rankmath = new WP_Blog_Agent_RankMath();
-        $results = $rankmath->generate_all_seo_meta($post_id);
-        
-        wp_send_json_success(array(
-            'message' => 'SEO meta generated successfully!',
-            'description' => $results['description'],
-            'keyword' => $results['keyword']
-        ));
+        try {
+            $rankmath = new WP_Blog_Agent_RankMath();
+            
+            // Generate description
+            $description = $rankmath->generate_seo_description($post_id);
+            if (is_wp_error($description)) {
+                wp_send_json_error(array('message' => 'Failed to generate description: ' . $description->get_error_message()));
+                return;
+            }
+            
+            // Generate keyword
+            $keyword = $rankmath->generate_focus_keyword($post_id);
+            if (is_wp_error($keyword)) {
+                wp_send_json_error(array('message' => 'Failed to generate keyword: ' . $keyword->get_error_message()));
+                return;
+            }
+            
+            wp_send_json_success(array(
+                'message' => 'SEO meta generated successfully!',
+                'description' => $description,
+                'keyword' => $keyword
+            ));
+        } catch (Exception $e) {
+            WP_Blog_Agent_Logger::error('Exception during SEO generation', array(
+                'post_id' => $post_id,
+                'error' => $e->getMessage()
+            ));
+            wp_send_json_error(array('message' => $e->getMessage()));
+        }
     }
     
     /**
