@@ -23,9 +23,12 @@ class WP_Blog_Agent_Ollama {
         // Prepend system prompt to the user prompt for Ollama
         $full_prompt = $this->system_prompt . "\n\n" . $prompt;
         
+        // Clean prompt for JSON encoding
+        $clean_full_prompt = WP_Blog_Agent_Text_Utils::clean_for_json($full_prompt);
+        
         $request_body = array(
             'model' => $this->model,
-            'prompt' => $full_prompt,
+            'prompt' => $clean_full_prompt,
             'stream' => false,
         );
         
@@ -36,11 +39,19 @@ class WP_Blog_Agent_Ollama {
             'prompt_length' => strlen($prompt)
         ));
         
+        // Use safe JSON encoding with error logging
+        $json_body = WP_Blog_Agent_Text_Utils::safe_json_encode($request_body);
+        
+        if ($json_body === false) {
+            WP_Blog_Agent_Logger::error('Ollama JSON encoding failed');
+            return new WP_Error('json_encode_failed', 'Failed to encode request body for Ollama API.');
+        }
+        
         $response = wp_remote_post($this->api_url, array(
             'headers' => array(
                 'Content-Type' => 'application/json',
             ),
-            'body' => json_encode($request_body),
+            'body' => $json_body,
             'timeout' => 120, // Ollama might take longer for local models
         ));
         

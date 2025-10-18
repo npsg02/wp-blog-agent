@@ -150,20 +150,26 @@ class WP_Blog_Agent_RankMath {
      * Build prompt for SEO description generation
      */
     private function build_seo_description_prompt($title, $content) {
+        // Clean title and content for safe use in prompts
+        $clean_title = WP_Blog_Agent_Text_Utils::sanitize_for_prompt($title);
         $content_excerpt = strip_tags($content);
         $content_excerpt = substr($content_excerpt, 0, 500); // Limit to first 500 chars
+        $clean_content = WP_Blog_Agent_Text_Utils::sanitize_for_prompt($content_excerpt);
         
-        return "Blog Post Title: {$title}\n\nContent Preview: {$content_excerpt}";
+        return "Blog Post Title: {$clean_title}\n\nContent Preview: {$clean_content}";
     }
     
     /**
      * Build prompt for focus keyword generation
      */
     private function build_focus_keyword_prompt($title, $content) {
+        // Clean title and content for safe use in prompts
+        $clean_title = WP_Blog_Agent_Text_Utils::sanitize_for_prompt($title);
         $content_excerpt = strip_tags($content);
         $content_excerpt = substr($content_excerpt, 0, 500); // Limit to first 500 chars
+        $clean_content = WP_Blog_Agent_Text_Utils::sanitize_for_prompt($content_excerpt);
         
-        return "Blog Post Title: {$title}\n\nContent Preview: {$content_excerpt}";
+        return "Blog Post Title: {$clean_title}\n\nContent Preview: {$clean_content}";
     }
     
     /**
@@ -201,24 +207,34 @@ class WP_Blog_Agent_RankMath {
             $model_prop->setAccessible(true);
             $model = $model_prop->getValue($ai);
             
+            // Clean prompt for JSON encoding
+            $clean_prompt = WP_Blog_Agent_Text_Utils::clean_for_json($prompt);
+            
             $request_body = array(
                 'model' => $model,
                 'messages' => array(
                     array(
                         'role' => 'user',
-                        'content' => $prompt
+                        'content' => $clean_prompt
                     )
                 ),
                 'temperature' => 0.7,
                 'max_tokens' => 100
             );
             
+            // Use safe JSON encoding with error logging
+            $json_body = WP_Blog_Agent_Text_Utils::safe_json_encode($request_body);
+            
+            if ($json_body === false) {
+                return new WP_Error('json_encode_failed', 'Failed to encode request body for OpenAI API.');
+            }
+            
             $response = wp_remote_post($api_url, array(
                 'headers' => array(
                     'Content-Type' => 'application/json',
                     'Authorization' => 'Bearer ' . $api_key,
                 ),
-                'body' => json_encode($request_body),
+                'body' => $json_body,
                 'timeout' => 30,
             ));
             
@@ -270,11 +286,14 @@ class WP_Blog_Agent_RankMath {
             
             $api_url = "https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key={$api_key}";
             
+            // Clean prompt for JSON encoding
+            $clean_prompt = WP_Blog_Agent_Text_Utils::clean_for_json($prompt);
+            
             $request_body = array(
                 'contents' => array(
                     array(
                         'parts' => array(
-                            array('text' => $prompt)
+                            array('text' => $clean_prompt)
                         )
                     )
                 ),
@@ -284,11 +303,18 @@ class WP_Blog_Agent_RankMath {
                 )
             );
             
+            // Use safe JSON encoding with error logging
+            $json_body = WP_Blog_Agent_Text_Utils::safe_json_encode($request_body);
+            
+            if ($json_body === false) {
+                return new WP_Error('json_encode_failed', 'Failed to encode request body for Gemini API.');
+            }
+            
             $response = wp_remote_post($api_url, array(
                 'headers' => array(
                     'Content-Type' => 'application/json',
                 ),
-                'body' => json_encode($request_body),
+                'body' => $json_body,
                 'timeout' => 30,
             ));
             
@@ -334,9 +360,12 @@ class WP_Blog_Agent_RankMath {
             $model_prop->setAccessible(true);
             $model = $model_prop->getValue($ai);
             
+            // Clean prompt for JSON encoding
+            $clean_prompt = WP_Blog_Agent_Text_Utils::clean_for_json($prompt);
+            
             $request_body = array(
                 'model' => $model,
-                'prompt' => $prompt,
+                'prompt' => $clean_prompt,
                 'stream' => false,
                 'options' => array(
                     'temperature' => 0.7,
@@ -344,11 +373,18 @@ class WP_Blog_Agent_RankMath {
                 )
             );
             
+            // Use safe JSON encoding with error logging
+            $json_body = WP_Blog_Agent_Text_Utils::safe_json_encode($request_body);
+            
+            if ($json_body === false) {
+                return new WP_Error('json_encode_failed', 'Failed to encode request body for Ollama API.');
+            }
+            
             $response = wp_remote_post($api_url, array(
                 'headers' => array(
                     'Content-Type' => 'application/json',
                 ),
-                'body' => json_encode($request_body),
+                'body' => $json_body,
                 'timeout' => 30,
             ));
             

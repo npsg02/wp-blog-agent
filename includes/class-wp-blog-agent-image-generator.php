@@ -38,9 +38,12 @@ class WP_Blog_Agent_Image_Generator {
         $api_url = 'https://generativelanguage.googleapis.com/v1beta/' . $this->model_id . ':predict';
         $url = $api_url . '?key=' . $this->api_key;
         
+        // Clean prompt for JSON encoding
+        $clean_prompt = WP_Blog_Agent_Text_Utils::clean_for_json($prompt);
+        
         $request_body = array(
             'instances' => array(
-                array('prompt' => $prompt)
+                array('prompt' => $clean_prompt)
             ),
             'parameters' => $params
         );
@@ -53,11 +56,19 @@ class WP_Blog_Agent_Image_Generator {
             'params' => $params
         ));
         
+        // Use safe JSON encoding with error logging
+        $json_body = WP_Blog_Agent_Text_Utils::safe_json_encode($request_body);
+        
+        if ($json_body === false) {
+            WP_Blog_Agent_Logger::error('Gemini Image JSON encoding failed');
+            return new WP_Error('json_encode_failed', 'Failed to encode request body for Gemini Image API.');
+        }
+        
         $response = wp_remote_post($url, array(
             'headers' => array(
                 'Content-Type' => 'application/json',
             ),
-            'body' => json_encode($request_body),
+            'body' => $json_body,
             'timeout' => 120, // Image generation may take longer
         ));
         
