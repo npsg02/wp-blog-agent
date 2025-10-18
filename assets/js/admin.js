@@ -110,7 +110,7 @@
         }, 5000);
         
         // Handle Generate SEO button click
-        $(document).on('click', '.wp-blog-agent-generate-seo', function(e) {
+        $(document).on('click', 'button.wp-blog-agent-generate-seo', function(e) {
             e.preventDefault();
             
             const $button = $(this);
@@ -145,7 +145,7 @@
         });
         
         // Handle Generate Image button click
-        $(document).on('click', '.wp-blog-agent-generate-image', function(e) {
+        $(document).on('click', 'button.wp-blog-agent-generate-image', function(e) {
             e.preventDefault();
             
             const $button = $(this);
