@@ -115,9 +115,8 @@ class WP_Blog_Agent_Queue {
             'trigger' => $trigger
         ]);
 
-        if (!wp_next_scheduled('wp_blog_agent_process_queue')) {
-            wp_schedule_single_event(time(), 'wp_blog_agent_process_queue');
-        }
+        // Schedule queue processing using cron module
+        WP_Blog_Agent_Cron::schedule_queue_processing();
 
         return $queue_id;
     }
@@ -249,9 +248,9 @@ class WP_Blog_Agent_Queue {
             'error' => $error_message
         ));
         
-        // Schedule retry if not max attempts reached
-        if ($attempts < 3 && !wp_next_scheduled('wp_blog_agent_process_queue')) {
-            wp_schedule_single_event(time() + 300, 'wp_blog_agent_process_queue'); // Retry in 5 minutes
+        // Schedule retry if not max attempts reached using cron module
+        if ($attempts < 3) {
+            WP_Blog_Agent_Cron::schedule_queue_processing(300); // Retry in 5 minutes
         }
         
         return $result !== false;
@@ -292,9 +291,10 @@ class WP_Blog_Agent_Queue {
             self::mark_completed($task->id, $result);
         }
 
+        // Schedule next task processing using cron module
         $next_task = self::get_next_task();
-        if ($next_task && !wp_next_scheduled('wp_blog_agent_process_queue')) {
-            wp_schedule_single_event(time() + 10, 'wp_blog_agent_process_queue');
+        if ($next_task) {
+            WP_Blog_Agent_Cron::schedule_queue_processing(10);
         }
     }
     
