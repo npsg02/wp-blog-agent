@@ -117,6 +117,9 @@ Navigate to **Blog Agent** → **Series** to:
 - **Create Series**: Create a new post series with a name and description
 - **View Series**: See all your post series and their statistics
 - **Add Posts to Series**: Add existing blog posts to a series
+  - **NEW**: Add ANY post to a series (AI-generated or manually created)
+  - Filter posts by type: All Posts, AI Generated, or Manual
+  - Posts are organized by type for easy selection
 - **AI Topic Suggestions**: Get AI-powered topic suggestions for the next post in a series
   - Click "Get AI Suggestions" on any series with at least one post
   - AI analyzes existing post titles in the series
@@ -125,6 +128,11 @@ Navigate to **Blog Agent** → **Series** to:
   - Click "Generate Selected Topics" to add them to the generation queue
   - Posts are generated asynchronously in the background
   - The new posts are automatically added to the series
+- **Rewrite Posts**: Regenerate content for any post in a series
+  - Click "Rewrite" button on any post
+  - AI generates fresh content while preserving the post ID
+  - Confirmation dialog prevents accidental rewrites
+  - Rewrite happens asynchronously in the queue
 - **Manage Series Posts**: View, reorder, or remove posts from a series
 
 **Example Workflow:**
