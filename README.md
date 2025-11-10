@@ -478,6 +478,34 @@ After running the script:
 
 See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for complete deployment instructions including CI/CD workflows.
 
+### Testing
+
+The plugin includes a comprehensive PHPUnit test suite covering the core utility classes.
+
+#### Running Tests
+
+```bash
+# Install test dependencies
+composer install
+
+# Run all tests
+composer test
+
+# Run tests with detailed output
+./vendor/bin/phpunit --testdox
+
+# Generate code coverage report
+composer test-coverage
+```
+
+#### Test Coverage
+
+- **WP_Blog_Agent_Text_Utils** (18 tests): JSON encoding, UTF-8 handling, text sanitization
+- **WP_Blog_Agent_Validator** (23 tests): Input validation, API key validation, data sanitization
+- **WP_Blog_Agent_Logger** (13 tests): Logging functionality, log rotation, log cleanup
+
+See [TESTING.md](TESTING.md) for detailed testing documentation and guidelines.
+
 ### CI/CD Workflows
 
 The plugin includes GitHub Actions workflows for automated deployment:

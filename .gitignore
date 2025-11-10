@@ -35,3 +35,7 @@ dist/
 
 # Release files
 release_notes.txt
+
+# Testing
+coverage/
+.phpunit.result.cache
